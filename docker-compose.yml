@@ -1,0 +1,15 @@
+name: adept
+services:
+   adept:
+      build:
+         context: .
+         dockerfile: Dockerfile
+      hostname: adept
+      container_name: adept
+      volumes:
+         - type:   bind
+           source: ./datalog
+           target: /datalog
+           bind:
+            create_host_path: true
+            
