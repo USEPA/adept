@@ -370,7 +370,7 @@ class WebScraper():
 				params = utils.build_payload_params(link[2], full_html)
 				payload = payload | params
 				# payload['counter'] = 2
-/				# print(payload)
+				# print(payload)
 
 			join_column = {col_header: link[1]}
 			if 'NonTcrSampleResults' in self.current_report_url:
