@@ -8,7 +8,6 @@ state_urls = [
                 {'IA': 'http://programs.iowadnr.gov/drinkingwaterwatch/'},
                 {'ID': 'http://dww.deq.idaho.gov/IDPDWW/'},
                 {'IL': 'https://water.epa.state.il.us/dww/'},
-                {'IN': 'https://myweb.in.gov/IDEM/DWW/'},
                 {'KS': 'https://dww.kdhe.ks.gov/DWW/JSP/SearchDispatch'},
                 {'KY': 'https://dep.gateway.ky.gov/DWW/'},
                 {'MD': 'https://mdesdwis.mde.state.md.us/DWW/'},
