@@ -367,7 +367,10 @@ class WebScraper():
 			payload = None 
 			if self.token_state:
 				payload = self.build_payload()
+				# print(link[2])
 				params = utils.build_payload_params(link[2], full_html)
+				if not params:
+					continue
 				payload = payload | params
 				# payload['counter'] = 2
 				# print(payload)
@@ -381,10 +384,10 @@ class WebScraper():
 					join_column['tsasampl_is_number'] = utils.get_url_param_value(self.current_report_url, 'tsasampl_is_number')
 
 			self.run_logger.info('Working on %s %s', col_header, link[1])
-			self.write_table_data(join_column=join_column, parent_table_title=table_title, payload=payload, parent_html=full_html)
+			self.write_table_data(join_column=join_column, parent_table_title=table_title, payload=payload, parent_html=full_html, in_drilldown=True)
 
 
-	def write_table_data(self, join_column=None, parent_table_title=None, payload=None, parent_html=None):
+	def write_table_data(self, join_column=None, parent_table_title=None, payload=None, parent_html=None, in_drilldown=False):
 		self.run_logger.info('Report URL is %s', self.current_report_url)
 		# print(join_column)
 
@@ -542,7 +545,7 @@ class WebScraper():
 				full_html = parent_html
 			else:
 				full_html = None
-			if self.table_title not in api_handler.nondrilldown_reports:
+			if self.table_title not in api_handler.nondrilldown_reports and not in_drilldown:
 				self.look_for_drilldowns(table, table_title=self.table_title, full_html=full_html)
 
 		return True

@@ -39,7 +39,7 @@ def get_selenium_driver(state_url=None, log=None):
     # comment/uncomment the line below to show/hide the browser 
     options.add_argument("--headless")
     # uncommenting below keeps browser window open; use only for debugging
-    # options.add_experimental_option("detach", True)
+    options.add_experimental_option("detach", True)
     
     service = Service(executable_path=ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)   
@@ -737,15 +737,18 @@ def sort_payload_params(param_dict, param_values, param_order):
 
 
 def build_payload_params(href, html):
-    function_name = get_function_name(href) 
-    function_def = get_function_definition(function_name, html)
-    action = get_js_action(function_def)
-    param_order = get_js_param_order(function_def)
-    param_dict = get_js_params(function_def)
-    param_values = get_js_param_values(href)
-    params = sort_payload_params(param_dict, param_values, param_order)
-    params['url'] = action
-    return params
+    try:
+        function_name = get_function_name(href) 
+        function_def = get_function_definition(function_name, html)
+        action = get_js_action(function_def)
+        param_order = get_js_param_order(function_def)
+        param_dict = get_js_params(function_def)
+        param_values = get_js_param_values(href)
+        params = sort_payload_params(param_dict, param_values, param_order)
+        params['url'] = action
+        return params
+    except Exception as e:
+        return None
 
 
 def get_table_df(table, header=None):
