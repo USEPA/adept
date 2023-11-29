@@ -21,7 +21,6 @@ import time
 from urllib import error
 from urllib.request import urlopen
 from bs4 import BeautifulSoup 
-import requests
 import ssl
 # import certifi
 
@@ -841,4 +840,20 @@ def get_report_counts(state):
     df.drop_duplicates(inplace=True)
     print(df.groupby('Report').count())    
 
+
+def test_url(url):
+    try:
+        r = urlopen(url)
+    except error.HTTPError:
+        return 'error'
+    if 'gecsws' in r.geturl():
+        return 'dwv'
+    elif r.geturl() != url:
+        return 'redirect'
+    else:
+        return 0
+
+def get_new_url(url):
+    r = urlopen(url)
+    return r.geturl()
 

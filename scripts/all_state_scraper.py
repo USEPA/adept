@@ -59,17 +59,6 @@ class WebScraper():
 		self.wsn_report_log = constants.WSN_LOG.replace('XX', self.state) 
 		self.wsn_file = constants.WSN_SAVE_LOCATION.replace('XX', self.state) 
 		self.rundate_suffix = utils.get_datestamp_suffix()
-		self.token_state = self.get_token_state()
-		if self.token_state:
-			self.driver = self.get_driver()
-			self.token = self.get_token()
-			self.session = self.get_session()
-		elif self.state == 'WY':
-			self.driver = self.get_driver()
-			self.session = self.get_session()
-		self.get_wsn_list()
-		self.get_nav_list()
-		self.get_dated_reports()
 
 	
 	def get_token_state(self):
@@ -609,9 +598,41 @@ class WebScraper():
 				self.run_logger.info('Created directory %s', report_group_dir)    
 
 
-	def scrape(self):
-		self.completed_wsns = utils.get_completed_wsn_reports(self.wsn_report_log)
+	def test_state_url(self):
+		msg = None
+		for state in api_handler.state_urls:
+			for k, v in state.items():
+				if k == self.state:
+					url_test = utils.test_url(v)
+					if url_test == 'dwv':
+						msg = self.state + ' appears to have switched to Drinking Water Viewer. This script will not be run. Please report to ADEPT team.'
+					elif url_test == 'error':
+						msg = 'An error was encountered when trying to access ' + v + ' for ' + self.state + '. This script will not be run.'
+					elif url_test == 'redirect':
+						self.run_logger.info('Redirected to %s when attempting to access saved URL %s for %s.', utils.get_new_url(v), v, self.state)
+					else:
+						return 
+					if msg:
+						print(msg)
+						self.run_logger.error('%s', msg)
+						exit()
 
+	def scrape(self):
+		self.test_state_url()
+		self.token_state = self.get_token_state()
+		if self.token_state:
+			self.driver = self.get_driver()
+			self.token = self.get_token()
+			self.session = self.get_session()
+		elif self.state == 'WY':
+			self.driver = self.get_driver()
+			self.session = self.get_session()
+		self.get_wsn_list()
+		self.get_nav_list()
+		self.get_dated_reports()
+
+
+		self.completed_wsns = utils.get_completed_wsn_reports(self.wsn_report_log)
 		self.make_dirs()
 
 		for wsn in self.wsn_list:
