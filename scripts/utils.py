@@ -19,7 +19,7 @@ import itertools
 import re
 import time
 from urllib import error
-from urllib.request import urlopen
+from urllib.request import urlopen, Request
 from bs4 import BeautifulSoup 
 import ssl
 # import certifi
@@ -273,6 +273,12 @@ def get_html(url, session=None, retry_count=0):
             # context = ssl.create_default_context(cafile=certifi.where())
             context = ssl._create_unverified_context()
             html = urlopen(url, context=context).read()
+        except error.HTTPError:
+            try:
+                req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
+                html = urlopen(req)
+            except error.HTTPError:
+                raise e
         except (error.URLError, TimeoutError, ConnectionResetError) as e:
             if retry_count == config.MAX_URL_TRIES:
                 raise e
@@ -846,8 +852,10 @@ def get_report_counts(state):
 
 def test_url(url):
     try:
-        r = urlopen(url)
-    except error.HTTPError:
+        req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
+        r = urlopen(req)
+    except error.HTTPError as e:
+        # print(e)
         return 'error'
     if 'gecsws' in r.geturl():
         return 'dwv'
@@ -858,5 +866,8 @@ def test_url(url):
 
 
 def get_new_url(url):
-    r = urlopen(url)
+    req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
+    r = urlopen(req)
     return r.geturl()
+
+
