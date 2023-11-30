@@ -263,6 +263,7 @@ def get_report_group_from_url(url):
     
     
 def get_html(url, session=None, retry_count=0):
+    url = url.replace('#','%23')
     html = ''
     if session:
         response = session.get(url)
@@ -277,6 +278,8 @@ def get_html(url, session=None, retry_count=0):
                 raise e
             time.sleep(config.TIMEOUT_TIME)
             get_html(url, session=session, retry_count=retry_count + 1)    
+        except Exception as e:
+            raise e
     return html
     
     
@@ -856,4 +859,3 @@ def test_url(url):
 def get_new_url(url):
     r = urlopen(url)
     return r.geturl()
-

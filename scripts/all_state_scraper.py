@@ -168,7 +168,11 @@ class WebScraper():
 					else:
 						url = constants.WSN_SEARCH_URL.replace('STATE_URL', self.state_url)
 					# self.run_logger.debug(url)
-					html = utils.get_html(url)
+					try:
+						html = utils.get_html(url)
+					except Exception as e:
+						self.run_logger.error('Unable to open URL %s', url)
+						exit()
 					table = utils.get_parent_table_containing_href(html, 'WaterSystemDetail')
 					trs = table.find_all('tr')
 					for tr in trs:
@@ -211,7 +215,12 @@ class WebScraper():
 				html = self.load_wyr8(url)
 			else:
 				url = url + '&DWWState=' + str(self.wsn[3])
-				html = utils.get_html(url)
+				try:
+					html = utils.get_html(url)
+				except Exception as e:
+					self.run_logger.error('Unable to open URL %s and unable to build navigation list', url)
+					exit()
+
 
 		table = utils.get_parent_table_containing_href(html, 'WaterSystemFacilities')
 		anchors = table.select(f"a[href*='.jsp']")
