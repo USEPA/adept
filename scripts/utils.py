@@ -263,7 +263,7 @@ def get_report_group_from_url(url):
     
     
 def get_html(url, session=None, retry_count=0):
-    url = url.replace('#','%23')
+    url = url.replace('#','%23').replace(' ','%20')
     html = ''
     if session:
         response = session.get(url)
@@ -855,6 +855,7 @@ def test_url(url):
         return 'redirect'
     else:
         return 0
+
 
 def get_new_url(url):
     r = urlopen(url)

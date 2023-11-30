@@ -26,6 +26,7 @@ state_urls = [
                 {'VT': 'https://anrnode.anr.state.vt.us/DWW/'},
                 {'WV': 'https://dww.wvdhhr.org/DWWpublic/'},
                 {'WY': 'https://sdwisdww.epa.gov/DWWR8WY/'},
+                {'R8': 'https://sdwisdww.epa.gov/DWWR8WY/'},
               ]   
 
 csrf_token_states = ['KS','MO','RI']

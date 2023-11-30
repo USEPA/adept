@@ -95,7 +95,7 @@ class WebScraper():
 
 	def get_wsns(self):
 		try:
-			df = pd.read_csv(self.wsn_file, delimiter=',')
+			df = pd.read_csv(self.wsn_file, delimiter=',', dtype=str)
 			if self.wsnumber and isinstance(self.wsnumber, str):
 				df = df[df['wsnumber'] == self.wsnumber]
 			elif self.wsnumber and isinstance(self.wsnumber, list):
@@ -122,13 +122,13 @@ class WebScraper():
 					writer.writerow(headers)
 					first_row = False
 
-				if self.state == 'WY':
+				if self.state == 'WY' or self.state == 'R8':
 					html = self.driver.page_source
 					soup = BeautifulSoup(html, features='lxml')
 					form_action = soup.find('form')['action']
 					url = self.state_url + form_action
 					# TODO: add '08' as a value
-					payload = {'state_code': 'WY'}    
+					payload = {'state_code': self.state.replace('R8','08')}    
 					self.session.post(url, data=payload)
 					url = self.state_url + 'JSP/SearchDispatch?number=&name=&county=All&WaterSystemType=All&SourceWaterType=All&PointOfContactType=None&SampleType=null&begin_date=BEGIN_DATE&end_date=END_DATE&action=Search+For+Water+Systems'
 					url = url.replace('BEGIN_DATE', self.begin_date).replace('END_DATE', self.end_date)
@@ -190,7 +190,7 @@ class WebScraper():
 		soup = BeautifulSoup(html, features='lxml')
 		form_action = soup.find('form')['action']
 		pre_url = self.state_url + form_action
-		payload = {'state_code': wyr8}    
+		payload = {'state_code': wyr8.replace('R8','08') }    
 		self.session.post(pre_url, data=payload)
 		response = self.session.get(url)
 		html = response.text
@@ -208,11 +208,11 @@ class WebScraper():
 		else:
 			# build WSN Details URL
 			url = constants.WSN_DETAILS_URL.replace('TINWSYS_IS_NUMBER', str(self.wsn[1]))
-			url = url.replace('WSNUMBER', self.wsn[0])
-			url = url.replace('TINWSYS_ST_CODE', self.state)
+			url = url.replace('WSNUMBER', str(self.wsn[0]))
+			url = url.replace('TINWSYS_ST_CODE', self.state.replace('R8','08'))
 			url = url.replace('STATE_URL', self.state_url)
-			if self.state == 'WY':
-				html = self.load_wyr8(url)
+			if self.state == 'WY' or self.state == 'R8':
+				html = self.load_wyr8(url, wyr8=self.state.replace('R8','08'))
 			else:
 				url = url + '&DWWState=' + str(self.wsn[3])
 				try:
@@ -221,13 +221,12 @@ class WebScraper():
 					self.run_logger.error('Unable to open URL %s and unable to build navigation list', url)
 					exit()
 
-
 		table = utils.get_parent_table_containing_href(html, 'WaterSystemFacilities')
 		anchors = table.select(f"a[href*='.jsp']")
 
 		if self.token_state:
 			self.nav_list = [self.state_url + 'JSP/WaterSystemDetail.jsp']
-		elif self.state == 'WY':
+		elif self.state == 'WY' or self.state == 'R8':
 			self.nav_list = [constants.WSN_DETAILS_URL.replace('STATE_URL', self.state_url)]
 		else:
 			self.nav_list = [constants.WSN_DETAILS_URL.replace('STATE_URL', self.state_url) + '&DWWState=DWWSTATE']
@@ -243,8 +242,8 @@ class WebScraper():
 						# some of the nav links contain begin and end date parameters but the date selection doesn't 
 						# exist on the report page and will cause an error if dates are passed, so run a check
 						temp_report_url = report_url.replace('TINWSYS_IS_NUMBER', str(self.wsn[1]))
-						temp_report_url = temp_report_url.replace('WSNUMBER', self.wsn[0])
-						temp_report_url = temp_report_url.replace('TINWSYS_ST_CODE', self.state)
+						temp_report_url = temp_report_url.replace('WSNUMBER', str(self.wsn[0]))
+						temp_report_url = temp_report_url.replace('TINWSYS_ST_CODE', self.state.replace('R8','08') )
 						temp_report_url = temp_report_url.replace('DWWSTATE', self.wsn[2]) 
 						temp_report_url = temp_report_url.replace('BEGIN_DATE','')
 						temp_report_url = temp_report_url.replace('END_DATE','')
@@ -277,11 +276,19 @@ class WebScraper():
 
 	def get_dated_reports(self):
 		self.dated_reports = []
+		if self.token_state:
+			self.wsn = self.wsn_list[0]
 		for link in self.nav_list:
-			if 'BEGIN_DATE' in link:
-				self.dated_reports.append(utils.get_report_group_from_url(link))
-			# TODO: this won't work for token states; add code to test each link for token states and look for begin_date element 
-				
+			if self.token_state and link == 'TcrSampleResults.jsp':
+				payload = self.build_payload()
+				html = utils.get_html_post(self.state_url + 'JSP/' + link, self.session, payload)
+				soup = BeautifulSoup(html,'lxml')
+				if soup.find('input', {'name':'begin_date'}):
+					self.dated_reports.append(utils.get_report_group_from_url(link))
+			else:
+				if 'BEGIN_DATE' in link:
+					self.dated_reports.append(utils.get_report_group_from_url(link))
+
 
 	def build_current_report_url(self, report_url):
 		tinwsys_is_number = str(self.wsn[1])
@@ -299,7 +306,7 @@ class WebScraper():
 
 
 	def build_payload(self):
-		wsnumber = self.wsn[0]
+		wsnumber = str(self.wsn[0])
 		tinwsys_is_number = str(self.wsn[1])
 		tinwsys_st_code = self.wsn[2]
 		dwwstate = str(self.wsn[3])
@@ -361,7 +368,7 @@ class WebScraper():
 			# print(drilldown_links)
 
 		for link in drilldown_info:
-			self.current_report_url = link[0].replace(' ', '%20')
+			self.current_report_url = link[0]
 			payload = None 
 			if self.token_state:
 				payload = self.build_payload()
@@ -392,8 +399,8 @@ class WebScraper():
 		try:
 			if payload:
 				html = utils.get_html_post(self.current_report_url, self.session, payload)
-			elif self.state == 'WY':
-				html = self.load_wyr8(self.current_report_url)
+			elif self.state == 'WY' or self.state == 'R8':
+				html = self.load_wyr8(self.current_report_url, wyr8=self.state.replace('R8','08') )
 				# print(html)
 			else:
 				html = utils.get_html(self.current_report_url)
@@ -633,7 +640,7 @@ class WebScraper():
 			self.driver = self.get_driver()
 			self.token = self.get_token()
 			self.session = self.get_session()
-		elif self.state == 'WY':
+		elif self.state == 'WY' or self.state == 'R8':
 			self.driver = self.get_driver()
 			self.session = self.get_session()
 		self.get_wsn_list()
@@ -645,7 +652,7 @@ class WebScraper():
 		self.make_dirs()
 
 		for wsn in self.wsn_list:
-			self.wsnumber = wsn[0]
+			self.wsnumber = str(wsn[0])
 			self.wsn = wsn
 			self.scrape_wsn()
 
@@ -674,7 +681,7 @@ def get_arguments():
 	args = parser.parse_args()
 
 	try:
-		state = args.state.upper() 
+		state = args.state.upper()
 	except AttributeError:
 		print('Please enter a state using argument --state and passing the 2-character state code')
 		exit()
