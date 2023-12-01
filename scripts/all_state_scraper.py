@@ -481,15 +481,18 @@ class WebScraper():
 				for i in range(len(report_table.columns)):
 					if (i % 2) == 0:
 						header_indexes.append(i)
-				headers = report_table.iloc[:,header_indexes[0]].to_list()
+					headers = report_table.iloc[:,header_indexes[0]].to_list()
 				for i in header_indexes[1:]:
 					headers.extend(report_table.iloc[:,i].to_list())
 				headers = [h for h in headers if not(pd.isnull(h)) == True]    
 				headers = [h.replace(' :', '') for h in headers]
 				headers = [h.replace(':', '') for h in headers]
-
 				working_report_table = pd.DataFrame(columns=headers)
-				new_row = report_table.iloc[:,header_indexes[0]+1].to_list() 
+				try:
+					new_row = report_table.iloc[:,header_indexes[0]+1].to_list() 
+				except IndexError:
+					# The CA Violation Details table is nested; the outer table throws this error; ignore it
+					continue
 				for i in header_indexes[1:]:
 					new_row.extend(report_table.iloc[:,i+1].to_list())
 					try:
