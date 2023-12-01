@@ -36,7 +36,7 @@ def get_selenium_driver(state_url=None, log=None):
     options.add_argument("--disable-extensions")
     options.add_argument("test-type")
     # comment/uncomment the line below to show/hide the browser 
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     # uncommenting below keeps browser window open; use only for debugging
     options.add_experimental_option("detach", True)
     
