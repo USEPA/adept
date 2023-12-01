@@ -855,7 +855,7 @@ def endtime_files(state, rundate_suffix):
             os.rename(full_path, directory + new_file_name)        
 
 
-def handle_scrape_error(state, error):
+def handle_scrape_error(state, error, task_id=None):
     from factories.logger_factory import LoggerFactory
     print('Scraper encountered an error; please see the run log')
     endtime_files(state, get_datestamp_suffix())
@@ -925,10 +925,3 @@ def get_new_url(url):
     req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
     r = urlopen(req)
     return r.geturl()
-
-
-url = 'https://sdwisdww.epa.gov/DWWR8WY/'
-if isinstance(test_url(url), Exception):
-    print('yay')
-else:
-    print('nay')

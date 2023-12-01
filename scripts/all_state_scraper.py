@@ -1,6 +1,6 @@
 from factories.logger_factory import LoggerFactory
 import api_handler, constants, utils
-import utils 
+import utils, cloudutils
 
 import pandas as pd
 import numpy as np
@@ -44,7 +44,8 @@ class WebScraper():
 				 num_wsns_to_scrape=None, 
 				 report_to_scrape=None, 
 				 ignore_logs=False,
-				 overwrite_wsn_file=False):
+				 overwrite_wsn_file=False,
+				 task_id=None):
 		self.state = state 
 		self.state_url = api_handler.get_url(state)
 		self.begin_date = utils.get_begin_date(begin_date)
@@ -54,6 +55,7 @@ class WebScraper():
 		self.report_to_scrape = report_to_scrape
 		self.ignore_logs = ignore_logs
 		self.overwrite_wsn_file = overwrite_wsn_file
+		self.task_id = task_id
 		self.run_logger = LoggerFactory.build_logger(constants.RUN_LOG.replace('XX', self.state))
 		self.wsn_report_logger = LoggerFactory.build_logger(constants.WSN_LOG.replace('XX', self.state), 'wsn')
 		self.wsn_report_log = constants.WSN_LOG.replace('XX', self.state) 
@@ -639,6 +641,7 @@ class WebScraper():
 						exit()
 
 	def scrape(self):
+		self.run_logger.info('Starting scrape for Task ID: %s', self.task_id)
 		self.test_state_url()
 		self.token_state = self.get_token_state()
 		if self.token_state:
@@ -661,11 +664,12 @@ class WebScraper():
 			self.wsn = wsn
 			self.scrape_wsn()
 
-		self.run_logger.info('Scrape complete')
 		self.wsn_report_logger.info('%s, %s, %s, %s', 'All', 'All', self.begin_date, self.end_date)
 
 		utils.endtime_files(self.state, self.rundate_suffix)
 		self.run_logger.info('Files renamed to include scrape end date.')
+
+		self.run_logger.info('Scrape complete for Task ID: %s', self.task_id)
 
 		try:
 			self.driver.close()
@@ -751,6 +755,9 @@ def get_arguments():
 	if overwrite_wsn_file:
 		print('Overwriting WSN list if it already exists')
 
+	task_id = cloudutils.fetch_task_id()
+	print('Task ID: ', task_id)
+
 	try:	
 		s = WebScraper(state, 
 					   num_wsns_to_scrape=num_wsns_to_scrape, 
@@ -759,14 +766,15 @@ def get_arguments():
 					   end_date=enddate, 
 					   report_to_scrape=report, 
 					   ignore_logs=ignorelogs,
-					   overwrite_wsn_file=overwrite_wsn_file)
+					   overwrite_wsn_file=overwrite_wsn_file,
+					   task_id=task_id)
 	except Exception as e:
-		utils.handle_scrape_error(state, e)
+		utils.handle_scrape_error(state, e, task_id)
 
 	try:
 		s.scrape()
 	except Exception as e:
-		utils.handle_scrape_error(state, e)
+		utils.handle_scrape_error(state, e, task_id)
 
 
 
