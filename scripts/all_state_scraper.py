@@ -146,7 +146,10 @@ class WebScraper():
 								writer.writerow(params)
 
 				elif self.token_state:
-					self.driver = utils.load_wsn_search(self.driver)
+					if self.state == 'KS':
+						self.driver = utils.load_wsn_search_ks(self.driver)
+					else:
+						self.driver = utils.load_wsn_search(self.driver)
 					url = self.state_url + '?OWASP-CSRFTOKEN=' + self.token
 					self.run_logger.debug('url = %s', url)
 					data = {'OWASP-CSRFTOKEN': self.token}
@@ -625,14 +628,13 @@ class WebScraper():
 					url_test = utils.test_url(v)
 					if url_test == 'dwv':
 						msg = self.state + ' appears to have switched to Drinking Water Viewer. This script will not be run. Please report to ADEPT team.'
-					elif url_test == 'error':
-						msg = 'An error was encountered when trying to access ' + v + ' for ' + self.state + '. This script will not be run.'
+					elif isinstance(url_test, Exception):
+						msg = 'An error was encountered when trying to access ' + v + ' for ' + self.state + '. This script will not be run. Error message: ' + str(url_test) 
 					elif url_test == 'redirect':
 						self.run_logger.info('Redirected to %s when attempting to access saved URL %s for %s.', utils.get_new_url(v), v, self.state)
 					else:
 						return 
 					if msg:
-						print(msg)
 						self.run_logger.error('%s', msg)
 						exit()
 

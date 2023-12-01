@@ -36,7 +36,7 @@ def get_selenium_driver(state_url=None, log=None):
     options.add_argument("--disable-extensions")
     options.add_argument("test-type")
     # comment/uncomment the line below to show/hide the browser 
-    options.add_argument("--headless")
+    # options.add_argument("--headless")
     # uncommenting below keeps browser window open; use only for debugging
     options.add_experimental_option("detach", True)
     
@@ -235,6 +235,62 @@ def load_wsn_search(driver, num_tries=0, log=None):
     return driver
 
 
+def load_wsn_search_ks(driver, num_tries=0, log=None):
+    msg = '1: ' + driver.current_url
+    if log:
+        log.debug(msg)
+    else:
+        print(msg)
+    try:
+        # driver.find_element('id','public').click()
+
+        # js = """return(FormSubmit(document.querySelector("#loginform")));"""
+        js = """
+                document.querySelector("#public").m_bClicked=true; 
+                console.log(document.querySelector("#public").m_bClicked);"""
+        driver.execute_script(js)
+        driver.find_element('id','public').click()
+
+        msg = '2: ' + driver.current_url
+        if log:
+            log.debug(msg)
+        else:
+            print(msg)
+    except exceptions.NoSuchElementException:
+        if 'Virginia' in driver.current_url and num_tries <= 3:
+            load_wsn_search(driver, num_tries + 1, log)
+        elif num_tries > 3:
+            msg = 'Unable to find the Public Access button; aborting'
+            if log:
+                log.exception(msg)
+            else:
+                print(msg)
+        # pass
+
+    if 'SearchDispatch' not in driver.current_url:
+        try:
+            try:
+                driver.find_element('link text', 'Water System Search').click()
+            except:
+                driver.find_element('link text', 'Search For Water Systems').click()
+            msg = '3: ' + driver.current_url
+            if log:
+                log.debug(msg)
+            else:
+                print(msg)
+        except exceptions.NoSuchElementException:
+            if 'Virginia' in driver.current_url and num_tries <= 3:
+                load_wsn_search(driver, num_tries + 1, log)
+            elif num_tries > 3:
+                msg = 'Unable to find the Public Access button; aborting'
+                if log:
+                    log.exception(msg)
+                else:
+                    print(msg)            
+    return driver
+
+
+
 def get_token(html):
     token = re.search('RecaptchaInitialization.js?(.+?)">', html).group(1)
     token = token.replace('?OWASP-CSRFTOKEN=','')
@@ -307,6 +363,7 @@ def get_state_report_urls(url_to_check):
     When passed a state report URL (usually the Water System Details page, but can be any page with report nagivation),
     returns a list of all report URLs from constants.REPORT_URLS that exist in the report navigation for the state_url
     in question. Will NOT add report URLs that exist for a state but are not in constants.REPORT_URLS.
+    THIS FUNCTION IS NOT CURRENTLY USED
     """
     html = get_html(url_to_check)
     soup = BeautifulSoup(html,'lxml')            
@@ -854,9 +911,8 @@ def test_url(url):
     try:
         req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
         r = urlopen(req)
-    except error.HTTPError as e:
-        # print(e)
-        return 'error'
+    except Exception as e:
+        return e
     if 'gecsws' in r.geturl():
         return 'dwv'
     elif r.geturl() != url:
@@ -871,3 +927,8 @@ def get_new_url(url):
     return r.geturl()
 
 
+url = 'https://sdwisdww.epa.gov/DWWR8WY/'
+if isinstance(test_url(url), Exception):
+    print('yay')
+else:
+    print('nay')
