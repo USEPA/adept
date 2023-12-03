@@ -15,7 +15,12 @@ def fetch_task_id(
         
       data = r.json();
       
-      return data["taskArn"];
+      if "taskArn" in data:
+         return data["taskArn"];
+         
+      else:
+         print(str(data));
+         return default_value;
    
    # Add additional equivalent checks for other cloud environments
    
