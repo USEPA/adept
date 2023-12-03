@@ -15,8 +15,8 @@ def fetch_task_id(
         
       data = r.json();
       
-      if "taskArn" in data:
-         return data["taskArn"];
+      if "TaskARN" in data:
+         return data["TaskARN"];
          
       else:
          print(str(data));
