@@ -278,9 +278,9 @@ def get_html(url, session=None, retry_count=0):
         html = response.text
     else:
         try:
-            context = ssl.create_default_context(cafile=certifi.where())
+            # context = ssl.create_default_context(cafile=certifi.where())
             # context = ssl._create_unverified_context()
-            html = urlopen(url, context=context).read()
+            html = urlopen(url, context=ssl.SSLContext()).read()
         except error.HTTPError:
             try:
                 req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
