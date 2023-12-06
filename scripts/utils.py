@@ -865,7 +865,8 @@ def get_report_counts(state):
 def test_url(url):
     try:
         req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
-        r = urlopen(req)
+        context = ssl._create_unverified_context()
+        r = urlopen(req, context=context)
     except Exception as e:
         return e
     if 'gecsws' in r.geturl():
@@ -878,7 +879,8 @@ def test_url(url):
 
 def get_new_url(url):
     req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
-    r = urlopen(req)
+    context = ssl._create_unverified_context()
+    r = urlopen(req, context=context)
     return r.geturl()
 
 
