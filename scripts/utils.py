@@ -41,8 +41,8 @@ def get_selenium_driver(state_url=None, log=None):
     options.add_argument('user-agent=Mozilla/5.0')
     options.add_argument('--disable-blink-features=AutomationControlled') 
     options.add_experimental_option('useAutomationExtension', False) 
-    # uncomment the line below to show the browser; use only for debugging
-    # options.add_argument('--headless')
+    # comment out the line below to show the browser (use only for debugging)
+    options.add_argument('--headless')
     # uncomment the line below to keep the browser window open; use only for debugging
     # options.add_experimental_option('detach', True)
     

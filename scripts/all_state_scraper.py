@@ -20,6 +20,7 @@ import argparse
 class WebScraper():
 	wsn_list = None
 	nav_list = None
+	token_state = None
 	dated_reports = None
 	report_group_dir = None
 	report_file_name = None 
