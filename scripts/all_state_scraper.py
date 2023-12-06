@@ -1,11 +1,12 @@
 from factories.logger_factory import LoggerFactory
-import api_handler, constants, utils
-import utils, cloudutils
+import api_handler, constants, utils, cloudutils
 
 import pandas as pd
 import numpy as np
 from bs4 import BeautifulSoup 
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions
 from os import path, makedirs
 from pathlib import Path
 import csv
@@ -85,6 +86,7 @@ class WebScraper():
 	def get_session(self):
 		s = requests.session()
 		selenium_user_agent = self.driver.execute_script("return navigator.userAgent;")
+		print('user-agent = ' + selenium_user_agent)
 		s.headers.update({"User-Agent": selenium_user_agent})
 		cookies = ''
 		for cookie in self.driver.get_cookies():
@@ -148,10 +150,16 @@ class WebScraper():
 								writer.writerow(params)
 
 				elif self.token_state:
-					if self.state == 'KS':
-						self.driver = utils.load_wsn_search_ks(self.driver)
-					else:
-						self.driver = utils.load_wsn_search(self.driver)
+					# if self.state == 'KS':
+					# 	try:
+					# 		self.driver = utils.load_wsn_search_ks(self.driver, session_token=self.token)
+					# 	except Exception as e:
+					# 		self.run_logger.error('Unable to load WSN search, aborting. Error message: %s', e)
+					# 		self.run_logger.info('Scrape ended; Task ID %s', self.task_id)
+					# 		exit()
+					# else:
+					self.driver = utils.load_wsn_search(self.driver)
+					
 					url = self.state_url + '?OWASP-CSRFTOKEN=' + self.token
 					self.run_logger.debug('url = %s', url)
 					data = {'OWASP-CSRFTOKEN': self.token}
@@ -177,6 +185,7 @@ class WebScraper():
 						html = utils.get_html(url)
 					except Exception as e:
 						self.run_logger.error('Unable to open URL %s', url)
+						self.run_logger.info('Scrape ended due to error; Task ID %s', self.task_id)
 						exit()
 					table = utils.get_parent_table_containing_href(html, 'WaterSystemDetail')
 					trs = table.find_all('tr')
@@ -223,7 +232,8 @@ class WebScraper():
 				try:
 					html = utils.get_html(url)
 				except Exception as e:
-					self.run_logger.error('Unable to open URL %s and unable to build navigation list', url)
+					self.run_logger.error('Unable to open URL %s therefore unable to build navigation list', url)
+					self.run_logger.info('Scrape ended due to error; Task ID %s', self.task_id)
 					exit()
 
 		table = utils.get_parent_table_containing_href(html, 'WaterSystemFacilities')
@@ -256,6 +266,7 @@ class WebScraper():
 							html = utils.get_html(temp_report_url)
 						except Exception as e:
 							self.run_logger.error('Unable to validate %s in order to build navigation list', temp_report_url)
+							self.run_logger.info('Scrape ended; Task ID %s', self.task_id)
 							exit()
 						soup = BeautifulSoup(html,'lxml')
 						begin_date_selector = soup.find('input', {'name':'begin_date'})
@@ -463,7 +474,7 @@ class WebScraper():
 				self.run_logger.debug('Table title is a repeat, changing to ' + self.table_title)	
 
 			self.run_logger.info(f'Working on {self.wsnumber}: {self.table_title} . . .')
-			self.report_file_name = self.state + '_' + self.table_title + self.rundate_suffix + '.csv'
+			self.report_file_name = self.state + '_' + self.table_title + self.rundate_suffix + '.tmp'
 			self.report_file_path = self.report_group_dir + '/' + self.report_file_name
 
 			try:
@@ -566,6 +577,7 @@ class WebScraper():
 
 	def scrape_wsn(self):
 		self.run_logger.info('Working on %s', self.wsnumber)
+		found_data = False
 
 		for report_url in self.nav_list:
 			# get the report group name, which is the subfolder to save to
@@ -611,6 +623,9 @@ class WebScraper():
 			# log the report
 			if scraped:
 				self.wsn_report_logger.info('%s, %s, %s, %s', self.wsnumber, report_group_name, self.begin_date, self.end_date)
+				found_data = True
+		if not found_data:
+			self.run_logger.info('No new data found for %s',  self.wsnumber)
 
 
 	def make_dirs(self):
@@ -654,7 +669,6 @@ class WebScraper():
 		self.get_wsn_list()
 		self.get_nav_list()
 		self.get_dated_reports()
-
 
 		self.completed_wsns = utils.get_completed_wsn_reports(self.wsn_report_log)
 		self.make_dirs()

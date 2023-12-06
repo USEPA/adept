@@ -13,6 +13,9 @@ from selenium import webdriver
 from selenium.common import exceptions
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions
 from webdriver_manager.chrome import ChromeDriverManager
 import pandas as pd
 import itertools
@@ -27,21 +30,26 @@ import ssl
 
 def get_selenium_driver(state_url=None, log=None):
     options = Options()
-    options.add_argument("--disable-notifications")
-    options.add_argument("--disable-infobars")
-    options.add_argument("--mute-audio")
+    options.add_argument('--disable-notifications')
+    options.add_argument('--disable-infobars')
+    options.add_argument('--mute-audio')
     options.add_argument('--no-sandbox')
-    options.add_argument("--log-level=3")
-    options.add_experimental_option('excludeSwitches', ['enable-logging'])
-    options.add_argument("--disable-extensions")
-    options.add_argument("test-type")
-    # comment/uncomment the line below to show/hide the browser 
-    options.add_argument("--headless")
-    # uncommenting below keeps browser window open; use only for debugging
-    options.add_experimental_option("detach", True)
+    options.add_argument('--log-level=3')
+    options.add_experimental_option('excludeSwitches', ['enable-logging','enable-automation'])
+    options.add_argument('--disable-extensions')
+    options.add_argument('test-type')
+    options.add_argument('user-agent=Mozilla/5.0')
+    options.add_argument('--disable-blink-features=AutomationControlled') 
+    options.add_experimental_option('useAutomationExtension', False) 
+    # uncomment the line below to show the browser; use only for debugging
+    # options.add_argument('--headless')
+    # uncomment the line below to keep the browser window open; use only for debugging
+    # options.add_experimental_option('detach', True)
     
     service = Service(executable_path=ChromeDriverManager().install())
     driver = webdriver.Chrome(service=service, options=options)   
+    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})") 
+    driver.set_window_size(1080, 800)
 
     # ensure valid session
     if state_url:
@@ -233,62 +241,6 @@ def load_wsn_search(driver, num_tries=0, log=None):
                 else:
                     print(msg)            
     return driver
-
-
-def load_wsn_search_ks(driver, num_tries=0, log=None):
-    msg = '1: ' + driver.current_url
-    if log:
-        log.debug(msg)
-    else:
-        print(msg)
-    try:
-        # driver.find_element('id','public').click()
-
-        # js = """return(FormSubmit(document.querySelector("#loginform")));"""
-        js = """
-                document.querySelector("#public").m_bClicked=true; 
-                console.log(document.querySelector("#public").m_bClicked);"""
-        driver.execute_script(js)
-        driver.find_element('id','public').click()
-
-        msg = '2: ' + driver.current_url
-        if log:
-            log.debug(msg)
-        else:
-            print(msg)
-    except exceptions.NoSuchElementException:
-        if 'Virginia' in driver.current_url and num_tries <= 3:
-            load_wsn_search(driver, num_tries + 1, log)
-        elif num_tries > 3:
-            msg = 'Unable to find the Public Access button; aborting'
-            if log:
-                log.exception(msg)
-            else:
-                print(msg)
-        # pass
-
-    if 'SearchDispatch' not in driver.current_url:
-        try:
-            try:
-                driver.find_element('link text', 'Water System Search').click()
-            except:
-                driver.find_element('link text', 'Search For Water Systems').click()
-            msg = '3: ' + driver.current_url
-            if log:
-                log.debug(msg)
-            else:
-                print(msg)
-        except exceptions.NoSuchElementException:
-            if 'Virginia' in driver.current_url and num_tries <= 3:
-                load_wsn_search(driver, num_tries + 1, log)
-            elif num_tries > 3:
-                msg = 'Unable to find the Public Access button; aborting'
-                if log:
-                    log.exception(msg)
-                else:
-                    print(msg)            
-    return driver
-
 
 
 def get_token(html):
@@ -847,20 +799,23 @@ def is_ended(filename):
 def endtime_files(state, rundate_suffix):
     endtime_suffix = get_timestamp_suffix()
     report_dir = constants.DATA_DIR.replace('XX', state) + state + rundate_suffix + '/'
-    for full_path in glob.glob(report_dir + '**/*.csv', recursive=True):
+    for full_path in glob.glob(report_dir + '**/*.tmp', recursive=True):
         file_name = ntpath.basename(full_path)
         if not is_ended(file_name):
             directory = ntpath.split(full_path)[0] + '/'
-            new_file_name = file_name.replace('.csv','') + endtime_suffix + '.csv'
+            new_file_name = file_name.replace('.tmp','') + endtime_suffix + '.csv'
             os.rename(full_path, directory + new_file_name)        
 
 
 def handle_scrape_error(state, error, task_id=None):
     from factories.logger_factory import LoggerFactory
     print('Scraper encountered an error; please see the run log')
+    if task_id:
+        print('Task ID:' + str(task_id))
     endtime_files(state, get_datestamp_suffix())
     run_logger = LoggerFactory.build_logger(constants.RUN_LOG.replace('XX', state))
     run_logger.exception('Error attempting to scrape %s: %s', state, error)
+    run_logger.info('Task ID: %s', task_id)
     exit()
     
 
@@ -925,3 +880,12 @@ def get_new_url(url):
     req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
     r = urlopen(req)
     return r.geturl()
+
+
+# def mark_scrape_end(dir, success=True):
+#     if success:
+#         filename = 'SCRAPE_COMPLETE.txt'
+#     else:
+#         filename = 'SCRAPE_ERROR.txt'
+#     with open(dir + filename, 'w') as f:
+#         f.write(time.ctime(time.time()))
