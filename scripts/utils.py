@@ -25,7 +25,7 @@ from urllib import error
 from urllib.request import urlopen, Request
 from bs4 import BeautifulSoup 
 import ssl
-# import certifi
+import certifi
 
 
 def get_selenium_driver(state_url=None, log=None):
@@ -278,8 +278,8 @@ def get_html(url, session=None, retry_count=0):
         html = response.text
     else:
         try:
-            # context = ssl.create_default_context(cafile=certifi.where())
-            context = ssl._create_unverified_context()
+            context = ssl.create_default_context(cafile=certifi.where())
+            # context = ssl._create_unverified_context()
             html = urlopen(url, context=context).read()
         except error.HTTPError:
             try:
