@@ -279,10 +279,7 @@ def get_html(url, session=None, retry_count=0):
     else:
         try:
             # context = ssl.create_default_context(cafile=certifi.where())
-            # context = ssl._create_unverified_context()
-            context = ssl.create_default_context()
-            context.check_hostname = False
-            context.verify_mode = ssl.CERT_NONE            
+            context = ssl._create_unverified_context()
             html = urlopen(url, context=context).read()
         except error.HTTPError:
             try:
