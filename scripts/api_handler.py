@@ -13,7 +13,7 @@ state_urls = [
                 {'MD': 'https://mdesdwis.mde.state.md.us/DWW/'},
                 {'MO': 'https://www.dnr.mo.gov/DWW/'},
                 {'MS': 'https://apps.msdh.ms.gov/DWW/'},
-                {'MT': 'http://sdwisdww.mt.gov:8080/DWW/'},
+                {'MT': 'https://sdwisdww.mt.gov/DWW/'},
                 {'NC': 'https://www.pwss.enr.state.nc.us/NCDWW2/'},
                 {'NE': 'https://drinkingwater.ne.gov/'},
                 {'NM': 'https://dww.water.net.env.nm.gov/NMDWW/'},
