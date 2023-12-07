@@ -26,4 +26,14 @@ def fetch_task_id(
    
    return default_value;
 
+def fetch_diagnostics:
 
+   results = {}
+   results['external_ip'] = None;
+   
+   r = requests.get('https://api.ipify.org');
+   
+   if r.status_code == 200:
+      results['external_ip'] = r.content.decode('utf8');
+      
+   return results;
