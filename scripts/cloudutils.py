@@ -26,7 +26,7 @@ def fetch_task_id(
    
    return default_value;
 
-def fetch_diagnostics:
+def fetch_diagnostics():
 
    results = {}
    results['external_ip'] = None;
