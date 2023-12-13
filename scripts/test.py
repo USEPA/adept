@@ -1,4 +1,5 @@
 import pandas as pd    
+import copy
 
 table = """<table border="1" cellspacing="0" width="100%" bgcolor="#FFCC99" style="border-collapse: collapse" bordercolor="#111111" cellpadding="2">
 						<tbody><tr>
@@ -398,74 +399,51 @@ from bs4 import BeautifulSoup
 soup = BeautifulSoup(table, features='lxml')
 
 header = utils.get_table_header_index(soup)
-print('header = ' + str(header))
-
 table_title = utils.get_table_title(soup, 0)
-print('table title = ' + table_title)
-
 report_table = utils.get_table_df(table, header=header)
-print('There are ' + str(len(report_table)) + ' tables ')
-
 
 if len(report_table) > 1 and 'Coliform' in table_title:
 	nested_table_columns = utils.get_nested_table_column_indexes(soup, header)
-	print('nested_table_columns = ' + str(nested_table_columns))
-
-	column_headers, column_is_nested = utils.get_column_headers(soup, header, nested_table_columns)
-	column_headers[0] = 'Water System No.'
-	column_is_nested[0] = False
+	column_headers = utils.get_column_headers(soup, header, nested_table_columns)
+	column_headers.insert(0, 'Water System No.')
 	if 'Coliform' in table_title:
 		column_headers.append('Sample Pt Description Detail')
-		column_is_nested.append(False)
-	print(column_headers)
-	print(column_is_nested)
+	# print(column_headers)
+	working_report_table = pd.DataFrame(columns=column_headers)
 
-	i = -1  # i = index of outer loop of table rows
 	rows = soup.find('tbody').find_all('tr', recursive=False)
+	rows = rows[header+1:3] 
+
 	for row in rows:
-		i += 1
-		# print('i = ' + str(i))
+		base_report_row = ['WSN'] # TODO: change to the WSN		
+		row_copy = copy.copy(row)
+		for td in row_copy.find_all('td', recursive=False):
+			try:
+				td.find('table').decompose()
+			except:
+				pass
+			base_report_row.append(utils.clean_string(td.text))
+		# print(base_report_row)
 
-		# if i > header:
-		if i == 2: # TODO: uncomment line above and get rid of this one
-			subtable = row.find('table').find('tbody')
+		subtable = row.find('table').find('tbody')
+		for td in subtable.select('tr td:nth-of-type(2)'): # TODO: this extraneous empty table cell might not exist in all reports
+			td.decompose()
+		subtrs = subtable.find_all('tr', recursive=False)
+		num_subtable_rows = len(subtrs)
+		# print('num_subtable_rows = ' + str(num_subtable_rows))
 
-			subtrs = [td.text for td in subtable.select('tr td:nth-of-type(2)')]
-			print(subtrs)
-			exit()
+		for n in range(0, num_subtable_rows):
+			subreport_row = base_report_row[0: nested_table_columns[0]+1] # TODO: this will only work if there is a single subtable per row
 
+			for td in subtrs[n].find_all('td'):
+				subreport_row.append(utils.clean_string(td.text))
 
+			subreport_row.append(base_report_row[len(base_report_row)-1])
+			# print(subreport_row)
+			working_report_table.loc[len(working_report_table.index)] = subreport_row
 
+	print(working_report_table)
 
-			subtrs = row.find('table').find('tbody').find_all('tr', recursive=False)
-			print(subtrs)
-
-			num_subtable_rows = len(subtrs)
-			print('num_subtable_rows = ' + str(num_subtable_rows))
-
-			base_report_row = ['WSN'] # TODO: change to the WSN
-			for td in rows[i].find_all('td', recursive=False):
-				j = 0 # j = loop through cells in table row
-				if not column_is_nested[j]:
-					try:
-						td.find('table').decompose()
-					except:
-						pass
-					base_report_row.append(utils.clean_string(td.text))
-			# print(base_report_row)
-
-			for n in range(0, num_subtable_rows):
-				subreport_row = base_report_row[0: nested_table_columns[0]+1] # TODO: this will only work if there is a single subtable per row
-				# print(subreport_row)
-
-				print('n = ' + str(n))
-				try:
-					print(str(subtrs[n]))
-				except:
-					pass
-
-
-			exit()
 
 	
 
