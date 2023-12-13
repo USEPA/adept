@@ -895,33 +895,40 @@ def get_new_url(url):
 
 def get_nested_table_column_indexes(soup, header_index):
     nested_table_columns = []
-    rows = soup.find('tbody').find_all('tr', recursive=False)
+    rows = soup.find_all('tr', recursive=False)
     i = -1
-    for td in rows[header_index+1].find_all('td', recursive=False):
-        i += 1
-        try:
-            if td.find('table'):
-                nested_table_columns.append(i)              
-        except:
-            continue
+    try:
+        for td in rows[header_index+1].find_all('td', recursive=False):
+            i += 1
+            try:
+                if td.find('table'):
+                    nested_table_columns.append(i)              
+            except:
+                continue
+    except:
+        pass
     return nested_table_columns
 
 
 def get_column_headers(soup, header_index, nested_table_columns=[]):
     column_headers = []
-    column_is_nested = []
-    rows = soup.find('tbody').find_all('tr', recursive=False)
+    # column_is_nested = []
+    rows = soup.find_all('tr', recursive=False)
     i = 0
     for td in rows[header_index].find_all(['td','th'], recursive=False):
         if i in nested_table_columns:
             nested_list = td.text.split('/')  # !!!this delimiter is specific to the Coliform sample report for Texas-like states
             for c in nested_list:
                 column_headers.append(c)
-                column_is_nested.append(True)
+                # column_is_nested.append(True)
         else:
             column_headers.append(td.text)    
-            column_is_nested.append(False)
+            # column_is_nested.append(False)
         i += 1
     column_headers = [clean_string(x) for x in column_headers]
-    return (column_headers, column_is_nested)
+    # return (column_headers, column_is_nested)
+    return column_headers
 
+
+
+driver = get_selenium_driver('https://dwq.health.ri.gov/DWW/')

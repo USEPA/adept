@@ -15,6 +15,7 @@ import re
 from datetime import timedelta, datetime
 import requests 
 import argparse
+import copy
 
 
 class WebScraper():
@@ -486,14 +487,56 @@ class WebScraper():
 						# different sample results, so add a column containing the unique sample identifier from the URL
 						report_table['tsasampl_is_number'] = utils.get_unique_sample_ids_from_url(table, self.token_state)
 				else:
-					report_table = utils.get_table_df(table)
+					report_table = utils.get_table_df(table, header=self.header_index)
 			except (ValueError, IndexError) as e:
-				print(e)
+				self.run_logger.info("Table doens't contain data; skipping: %s", e)
 				# sometimes a legitimate report table is just a table title with no headings (or data),
 				# which will throw an error; in that case, skip and go to next table
 				continue
 
-			if self.table_type == 'columns':
+			nested_table_columns = utils.get_nested_table_column_indexes(table, self.header_index)
+			if len(nested_table_columns) > 0 and ('Coliform' in self.table_title or 'TCR' in self.table_title): # TX-like states have nested tables in the coliform sample report
+				# nested_table_columns = utils.get_nested_table_column_indexes(table, self.header_index)
+				column_headers = utils.get_column_headers(table, self.header_index, nested_table_columns)
+				column_headers.insert(0, 'Water System No.')
+				column_headers.append('Sample Pt Description Detail')
+				# print(column_headers)
+				working_report_table = pd.DataFrame(columns=column_headers)
+
+				rows = table.find_all('tr', recursive=False)
+				rows = rows[self.header_index+1:] 
+
+				for row in rows:
+					base_report_row = [self.wsnumber] 	
+					row_copy = copy.copy(row)
+					for td in row_copy.find_all('td', recursive=False):
+						try:
+							td.find('table').decompose()
+						except:
+							pass
+						base_report_row.append(utils.clean_string(td.text))
+					# print(base_report_row)
+
+					subtable = row.find('table')
+					for td in subtable.select('tr td:nth-of-type(2)'): # TODO: this extraneous empty table cell might not exist in all reports
+						td.decompose()
+					subtrs = subtable.find_all('tr', recursive=False)
+					num_subtable_rows = len(subtrs)
+					# print('num_subtable_rows = ' + str(num_subtable_rows))
+
+					for n in range(0, num_subtable_rows):
+						subreport_row = base_report_row[0: nested_table_columns[0]+1] # TODO: this will only work if there is a single subtable per row
+
+						for td in subtrs[n].find_all('td'):
+							subreport_row.append(utils.clean_string(td.text))
+
+						subreport_row.append(base_report_row[len(base_report_row)-1])
+						# print(subreport_row)
+						working_report_table.loc[len(working_report_table.index)] = subreport_row
+					report_table = working_report_table
+					# print(report_table)	
+
+			elif self.table_type == 'columns':
 				report_table.dropna(how='all', axis='columns', inplace=True)
 				header_indexes = []
 				for i in range(len(report_table.columns)):
