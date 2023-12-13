@@ -436,7 +436,6 @@ class WebScraper():
 		table_index = -1 # we will need the index of each table so start a counter
 		for table in soup.find_all('table'):
 			table_index += 1
-			# print('table_index = ' + str(table_index))
 
 			if 'Violation Detail' in page_title and 'Violation No.' in utils.clean_string(table.find('td').text):
 				# "Standard" states (non-TX-like) have Violation Detail table without a title, 
@@ -474,6 +473,7 @@ class WebScraper():
 				self.table_title = self.table_title + ' Detail'			
 				self.run_logger.debug('Table title is a repeat, changing to ' + self.table_title)	
 
+
 			self.run_logger.info(f'Working on {self.wsnumber}: {self.table_title} . . .')
 			self.report_file_name = self.state + '_' + self.table_title + self.rundate_suffix + '.tmp'
 			self.report_file_path = self.report_group_dir + '/' + self.report_file_name
@@ -487,7 +487,8 @@ class WebScraper():
 						report_table['tsasampl_is_number'] = utils.get_unique_sample_ids_from_url(table, self.token_state)
 				else:
 					report_table = utils.get_table_df(table)
-			except (ValueError, IndexError):
+			except (ValueError, IndexError) as e:
+				print(e)
 				# sometimes a legitimate report table is just a table title with no headings (or data),
 				# which will throw an error; in that case, skip and go to next table
 				continue

@@ -41,7 +41,8 @@ noscrape_nav_reports = ['index',
                         'AnalyteListByCode', 
                         'Map_Template',
                         'NMonitoringResultsByAnalyte',
-                        'CCR'
+                        'CCR',
+                        'PosTcrSampleResults'
                         ]
 
 def get_url(key):
