@@ -528,7 +528,7 @@ class WebScraper():
 						empty_cells = ''
 						for i in utils.get_nested_table_column_headers(table, self.header_index, nested_table_columns):
 							empty_cells = empty_cells + '<td></td>'
-						subtrs = BeautifulSoup('<tr>' + empty_cells + '</tR>', features='lxml').find_all('tr')
+						subtrs = BeautifulSoup('<tr>' + empty_cells + '</tr>', features='lxml').find_all('tr')
 
 					num_subtable_rows = len(subtrs)	
 					for n in range(0, num_subtable_rows):
@@ -641,7 +641,7 @@ class WebScraper():
 			if len(df) > 0:
 				if report_group_name in self.dated_reports:
 					report_end_date = datetime.strptime(constants.END_DATE, '%m/%d/%Y')
-					new_date = df.iloc[0]['End Date'] + timedelta(days=1)
+					new_date = df.iloc[0]['End Date'] - timedelta(days=90)
 					if report_end_date > new_date:
 						# We have some data for this WSN/report but the last scraped report date is older 
 						# than our current report end date, so replace the begin date with the last scraped date.
