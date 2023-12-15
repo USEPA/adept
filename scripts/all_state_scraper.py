@@ -88,7 +88,7 @@ class WebScraper():
 	def get_session(self):
 		s = requests.session()
 		selenium_user_agent = self.driver.execute_script("return navigator.userAgent;")
-		print('user-agent = ' + selenium_user_agent)
+		# print('user-agent = ' + selenium_user_agent)
 		s.headers.update({"User-Agent": selenium_user_agent})
 		cookies = ''
 		for cookie in self.driver.get_cookies():
@@ -478,6 +478,7 @@ class WebScraper():
 			self.run_logger.info(f'Working on {self.wsnumber}: {self.table_title} . . .')
 			self.report_file_name = self.state + '_' + self.table_title + self.rundate_suffix + '.tmp'
 			self.report_file_path = self.report_group_dir + '/' + self.report_file_name
+			# print('header_index = ' + str(self.header_index))
 
 			try:
 				if self.table_type == 'rows':
@@ -487,20 +488,18 @@ class WebScraper():
 						# different sample results, so add a column containing the unique sample identifier from the URL
 						report_table['tsasampl_is_number'] = utils.get_unique_sample_ids_from_url(table, self.token_state)
 				else:
-					report_table = utils.get_table_df(table, header=self.header_index)
+					report_table = utils.get_table_df(table)
 			except (ValueError, IndexError) as e:
-				self.run_logger.info("Table doens't contain data; skipping: %s", e)
+				self.run_logger.info("Table doesn't contain data; skipping: %s", e)
 				# sometimes a legitimate report table is just a table title with no headings (or data),
 				# which will throw an error; in that case, skip and go to next table
 				continue
 
 			nested_table_columns = utils.get_nested_table_column_indexes(table, self.header_index)
-			if len(nested_table_columns) > 0 and ('Coliform' in self.table_title or 'TCR' in self.table_title): # TX-like states have nested tables in the coliform sample report
-				# nested_table_columns = utils.get_nested_table_column_indexes(table, self.header_index)
+			if len(nested_table_columns) > 0 and ('Coliform' in self.table_title or 'TCR' in self.table_title or 'Long Term 2' in self.table_title): # TX-like states have nested tables in the coliform sample report
 				column_headers = utils.get_column_headers(table, self.header_index, nested_table_columns)
 				column_headers.insert(0, 'Water System No.')
 				column_headers.append('Sample Pt Description Detail')
-				# print(column_headers)
 				working_report_table = pd.DataFrame(columns=column_headers)
 
 				rows = table.find_all('tr', recursive=False)
@@ -518,20 +517,25 @@ class WebScraper():
 					# print(base_report_row)
 
 					subtable = row.find('table')
-					for td in subtable.select('tr td:nth-of-type(2)'): # TODO: this extraneous empty table cell might not exist in all reports
-						td.decompose()
-					subtrs = subtable.find_all('tr', recursive=False)
-					num_subtable_rows = len(subtrs)
-					# print('num_subtable_rows = ' + str(num_subtable_rows))
+					try:
+						for td in subtable.select('tr td:nth-of-type(2)'): # TODO: this extraneous empty table column that we are dropping so the column count matches the header columns, but it might not exist in all reports
+							td.decompose()
+						subtrs = subtable.find_all('tr', recursive=False)
+					except AttributeError:  # sometimes there is no data/subtable (might just have text like "Entire Sample Rejected: Other" as in MO)
+						# print(table)
+						# print(self.header_index)
+						# print(nested_table_columns)
+						empty_cells = ''
+						for i in utils.get_nested_table_column_headers(table, self.header_index, nested_table_columns):
+							empty_cells = empty_cells + '<td></td>'
+						subtrs = BeautifulSoup('<tr>' + empty_cells + '</tR>', features='lxml').find_all('tr')
 
+					num_subtable_rows = len(subtrs)	
 					for n in range(0, num_subtable_rows):
 						subreport_row = base_report_row[0: nested_table_columns[0]+1] # TODO: this will only work if there is a single subtable per row
-
 						for td in subtrs[n].find_all('td'):
 							subreport_row.append(utils.clean_string(td.text))
-
 						subreport_row.append(base_report_row[len(base_report_row)-1])
-						# print(subreport_row)
 						working_report_table.loc[len(working_report_table.index)] = subreport_row
 					report_table = working_report_table
 					# print(report_table)	
@@ -598,24 +602,25 @@ class WebScraper():
 							# column already exists in the drill-down table so just move on 
 							pass 
 
-			rpath = Path(self.report_file_path)
-			
-			if not rpath.is_file():
-				with open (self.report_file_path, 'a', newline='', encoding='utf-8') as write_file:
-					writer = csv.writer(write_file, quoting=csv.QUOTE_MINIMAL)
-					writer.writerow(list(report_table.columns))
-			
-			report_table.to_csv(self.report_file_path, mode='a', encoding='utf-8', index=False,  header=False)       
-			self.run_logger.info('Wrote %s data to %s', self.table_title, self.report_file_path)
+			if len(report_table) > 0: 
+				rpath = Path(self.report_file_path)
+				
+				if not rpath.is_file():
+					with open (self.report_file_path, 'a', newline='', encoding='utf-8') as write_file:
+						writer = csv.writer(write_file, quoting=csv.QUOTE_MINIMAL)
+						writer.writerow(list(report_table.columns))
+				
+				report_table.to_csv(self.report_file_path, mode='a', encoding='utf-8', index=False,  header=False)       
+				self.run_logger.info('Wrote %s data to %s', self.table_title, self.report_file_path)
 
-			if self.token_state and not parent_html:
-				full_html = html
-			elif self.token_state and parent_html:
-				full_html = parent_html
-			else:
-				full_html = None
-			if self.table_title not in api_handler.nondrilldown_reports and not in_drilldown:
-				self.look_for_drilldowns(table, table_title=self.table_title, full_html=full_html)
+				if self.token_state and not parent_html:
+					full_html = html
+				elif self.token_state and parent_html:
+					full_html = parent_html
+				else:
+					full_html = None
+				if self.table_title not in api_handler.nondrilldown_reports and not in_drilldown:
+					self.look_for_drilldowns(table, table_title=self.table_title, full_html=full_html)
 
 		return True
 
