@@ -782,23 +782,15 @@ def get_timestamp_suffix():
 	return '_' + datetime.today().strftime('%Y%m%d%H%M%S')
 
 
-def get_report_dir(state, rundate_suffix, report_group_name=None):
-	report_dir = constants.DATA_DIR.replace('XX', state)
-	report_dir = report_dir + state + rundate_suffix + '/'
-	if report_group_name:
-		report_dir = report_dir + report_group_name
-	return report_dir
-
-
 def is_ended(filename):
 	if len(re.findall(r'\d{8}_\d{14}', filename)) > 0:
 		return True 
 	return False
 
 
-def endtime_files(state, rundate_suffix):
+def endtime_files(state):
 	endtime_suffix = get_timestamp_suffix()
-	report_dir = constants.DATA_DIR.replace('XX', state) + state + rundate_suffix + '/'
+	report_dir = constants.DATA_DIR.replace('XX', state)
 	for full_path in glob.glob(report_dir + '**/*.tmp', recursive=True):
 		file_name = ntpath.basename(full_path)
 		if not is_ended(file_name):

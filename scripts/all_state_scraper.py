@@ -7,7 +7,7 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
-from os import path, makedirs
+from os import path, makedirs, walk, rmdir
 from pathlib import Path
 import csv
 from urllib import error, parse, request
@@ -655,8 +655,7 @@ class WebScraper():
 					# so go to the next report
 					continue
 
-			# self.report_group_dir = constants.DATA_DIR.replace('XX', self.state) + report_group_name
-			self.report_group_dir = utils.get_report_dir(self.state, self.rundate_suffix, report_group_name)
+			self.report_group_dir = constants.DATA_DIR.replace('XX', self.state) + report_group_name
 			payload = None
 			if self.token_state:
 				payload = self.build_payload()
@@ -680,11 +679,22 @@ class WebScraper():
 
 	def make_dirs(self):
 		for report_url in self.nav_list:
-			# report_group_dir = constants.DATA_DIR.replace('XX', self.state) + utils.get_report_group_from_url(report_url)
-			report_group_dir = utils.get_report_dir(self.state, self.rundate_suffix, utils.get_report_group_from_url(report_url))
+			report_group_dir = constants.DATA_DIR.replace('XX', self.state) + utils.get_report_group_from_url(report_url)
 			if not path.exists(report_group_dir):
 				makedirs(path.normpath(report_group_dir))
 				self.run_logger.info('Created directory %s', report_group_dir)    
+
+
+	def delete_dirs(self):
+		self.run_logger.info('Deleting empty directories')
+		parent_dir = constants.DATA_DIR.replace('XX', self.state)
+		folders = list(walk(parent_dir))[1:]
+		i = 0
+		for folder in folders:
+			if not folder[2]:
+				rmdir(folder[0])
+				i += 1
+		self.run_logger.info('Deleted %s empty directories', i)
 
 
 	def test_state_url(self):
@@ -730,8 +740,10 @@ class WebScraper():
 
 		self.wsn_report_logger.info('%s, %s, %s, %s', 'All', 'All', self.begin_date, self.end_date)
 
-		utils.endtime_files(self.state, self.rundate_suffix)
+		utils.endtime_files(self.state)
 		self.run_logger.info('Files renamed to include scrape end date.')
+
+		self.delete_dirs()
 
 		self.run_logger.info('Scrape complete for Task ID: %s', self.task_id)
 
