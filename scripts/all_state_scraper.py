@@ -266,6 +266,7 @@ class WebScraper():
 						temp_report_url = temp_report_url.replace('END_DATE','')
 						try:
 							html = utils.get_html(temp_report_url)
+							print(html)
 						except Exception as e:
 							self.run_logger.error('Unable to validate %s in order to build navigation list', temp_report_url)
 							self.run_logger.info('Scrape ended; Task ID %s', self.task_id)
@@ -855,4 +856,15 @@ def get_arguments():
 
 
 if __name__ == '__main__':       
-	get_arguments()
+	# get_arguments()
+	s = WebScraper('AZ', 
+				   num_wsns_to_scrape=2, 
+				   wsnumber=['AZ0402124','AZ0410051'], 
+				   begin_date='01/01/2023', 
+				   end_date='01/09/2024', 
+				   # report_to_scrape='Waivers', 
+				   # ignore_logs=ignorelogs,
+				   # overwrite_wsn_file=overwrite_wsn_file,
+				   # task_id=task_id
+				   )
+	s.scrape()
