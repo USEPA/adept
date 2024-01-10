@@ -25,6 +25,7 @@ from urllib import error
 from urllib.request import urlopen, Request
 from bs4 import BeautifulSoup 
 import ssl
+import http
 # import certifi
 
 
@@ -272,19 +273,18 @@ def get_report_group_from_url(url):
 	
 def get_html(url, session=None, retry_count=0):
 	url = url.replace('#','%23').replace(' ','%20')
-	html = ''
 	if session:
 		response = session.get(url)
-		html = response.text
+		return response.text
 	else:
 		try:
 			# context = ssl.create_default_context(cafile=certifi.where())
 			context = ssl._create_unverified_context()
-			html = urlopen(url, context=context).read()
+			response = urlopen(url, context=context)
 		except error.HTTPError:
 			try:
 				req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
-				html = urlopen(req)
+				response = urlopen(req)
 			except error.HTTPError:
 				raise e
 		except (error.URLError, TimeoutError, ConnectionResetError) as e:
@@ -294,6 +294,12 @@ def get_html(url, session=None, retry_count=0):
 			get_html(url, session=session, retry_count=retry_count + 1)    
 		except Exception as e:
 			raise e
+	try:
+		html = response.read()
+	except (http.client.IncompleteRead, ValueError) as e:
+		if retry_count == config.MAX_URL_TRIES:
+			raise e
+		get_html(url, session=session, retry_count=retry_count + 1)    
 	return html
 	
 	
@@ -301,12 +307,11 @@ def get_html_post(url, session, payload, retry_count=0):
 	html = ''
 	try:
 		response = session.post(url, data=payload)
+		html = response.text
 	except:
 		if retry_count == config.MAX_URL_TRIES:
 			raise e 
 		time.sleep(config.TIMEOUT_TIME)
-
-	html = response.text
 	return html
 
 
@@ -930,4 +935,3 @@ def get_column_headers(soup, header_index, nested_table_columns=[]):
 		i += 1
 	column_headers = [clean_string(x) for x in column_headers]
 	return column_headers
-
