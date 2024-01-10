@@ -273,6 +273,7 @@ def get_report_group_from_url(url):
 	
 def get_html(url, session=None, retry_count=0):
 	url = url.replace('#','%23').replace(' ','%20')
+	html = ''
 	if session:
 		response = session.get(url)
 		return response.text
@@ -881,15 +882,6 @@ def get_new_url(url):
 	return r.geturl()
 
 
-# def mark_scrape_end(dir, success=True):
-#     if success:
-#         filename = 'SCRAPE_COMPLETE.txt'
-#     else:
-#         filename = 'SCRAPE_ERROR.txt'
-#     with open(dir + filename, 'w') as f:
-#         f.write(time.ctime(time.time()))
-
-
 def get_nested_table_column_indexes(soup, header_index):
 	nested_table_columns = []
 	rows = soup.find_all('tr', recursive=False)
@@ -935,3 +927,5 @@ def get_column_headers(soup, header_index, nested_table_columns=[]):
 		i += 1
 	column_headers = [clean_string(x) for x in column_headers]
 	return column_headers
+
+
