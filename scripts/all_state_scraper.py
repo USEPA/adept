@@ -266,7 +266,6 @@ class WebScraper():
 						temp_report_url = temp_report_url.replace('END_DATE','')
 						try:
 							html = utils.get_html(temp_report_url)
-							print(html)
 						except Exception as e:
 							self.run_logger.error('Unable to validate %s in order to build navigation list', temp_report_url)
 							self.run_logger.info('Scrape ended; Task ID %s', self.task_id)
