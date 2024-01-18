@@ -46,6 +46,7 @@ class WebScraper():
 				 wsnumber=None, 
 				 num_wsns_to_scrape=None, 
 				 report_to_scrape=None, 
+				 drilldowns=True,
 				 ignore_logs=False,
 				 overwrite_wsn_file=False,
 				 task_id=None):
@@ -56,6 +57,7 @@ class WebScraper():
 		self.wsnumber = wsnumber
 		self.num_wsns_to_scrape = num_wsns_to_scrape
 		self.report_to_scrape = report_to_scrape
+		self.drilldowns = drilldowns
 		self.ignore_logs = ignore_logs
 		self.overwrite_wsn_file = overwrite_wsn_file
 		self.task_id = task_id
@@ -133,7 +135,6 @@ class WebScraper():
 					soup = BeautifulSoup(html, features='lxml')
 					form_action = soup.find('form')['action']
 					url = self.state_url + form_action
-					# TODO: add '08' as a value
 					payload = {'state_code': self.state.replace('R8','08')}    
 					self.session.post(url, data=payload)
 					url = self.state_url + 'JSP/SearchDispatch?number=&name=&county=All&WaterSystemType=All&SourceWaterType=All&PointOfContactType=None&SampleType=null&begin_date=BEGIN_DATE&end_date=END_DATE&action=Search+For+Water+Systems'
@@ -267,9 +268,10 @@ class WebScraper():
 						try:
 							html = utils.get_html(temp_report_url)
 						except Exception as e:
-							self.run_logger.error('Unable to validate %s in order to build navigation list', temp_report_url)
-							self.run_logger.info('Scrape ended; Task ID %s', self.task_id)
-							exit()
+							pass
+							# self.run_logger.error('Unable to validate %s in order to build navigation list', temp_report_url)
+							# self.run_logger.info('Scrape ended; Task ID %s', self.task_id)
+							# exit()
 						soup = BeautifulSoup(html,'lxml')
 						begin_date_selector = soup.find('input', {'name':'begin_date'})
 						if not begin_date_selector:
@@ -290,6 +292,7 @@ class WebScraper():
 				for url in self.nav_list:
 					if self.report_to_scrape not in url:
 						self.nav_list.remove(url)
+
 
 
 	def get_dated_reports(self):
@@ -503,6 +506,8 @@ class WebScraper():
 				working_report_table = pd.DataFrame(columns=column_headers)
 
 				rows = table.find_all('tr', recursive=False)
+				if not rows:
+					rows = table.find_all('tr', recursive=True)
 				rows = rows[self.header_index+1:] 
 
 				for row in rows:
@@ -518,9 +523,12 @@ class WebScraper():
 
 					subtable = row.find('table')
 					try:
-						for td in subtable.select('tr td:nth-of-type(2)'): # TODO: this extraneous empty table column that we are dropping so the column count matches the header columns, but it might not exist in all reports
-							td.decompose()
+						if utils.get_num_table_cells(subtable) > 4:
+							for td in subtable.select('tr td:nth-of-type(2)'): # TODO: some, but not all, states have an extraneous, empty cell in the coliform samples report (in the second column) - find a dynamic way to identify these
+								td.decompose()
 						subtrs = subtable.find_all('tr', recursive=False)
+						if not subtrs:
+							subtras = subtable.find_all('tr', recursive=True)
 					except AttributeError:  # sometimes there is no data/subtable (might just have text like "Entire Sample Rejected: Other" as in MO)
 						# print(table)
 						# print(self.header_index)
@@ -533,6 +541,7 @@ class WebScraper():
 					num_subtable_rows = len(subtrs)	
 					for n in range(0, num_subtable_rows):
 						subreport_row = base_report_row[0: nested_table_columns[0]+1] # TODO: this will only work if there is a single subtable per row
+						print(subreport_row)
 						for td in subtrs[n].find_all('td'):
 							subreport_row.append(utils.clean_string(td.text))
 						subreport_row.append(base_report_row[len(base_report_row)-1])
@@ -619,7 +628,7 @@ class WebScraper():
 					full_html = parent_html
 				else:
 					full_html = None
-				if self.table_title not in api_handler.nondrilldown_reports and not in_drilldown:
+				if self.table_title not in api_handler.nondrilldown_reports and not in_drilldown and self.drilldowns != 'N' and self.drilldowns != False:
 					self.look_for_drilldowns(table, table_title=self.table_title, full_html=full_html)
 
 		return True
@@ -761,6 +770,7 @@ def get_arguments():
 	parser.add_argument('--startdate', nargs='?',  help='Optional. The start date to use for reports with filterable date ranges. Defaults to 01/01/1980. Use format MM/DD/YYYY.')
 	parser.add_argument('--enddate', nargs='?',  help='Optional. The end date to use for reports with filterable date ranges. Defaults to the current date. Use format MM/DD/YYYY.')
 	parser.add_argument('--report', nargs='?', help='Optional. Typically used for development/debugging only. The report group from the report URL to restrict scrape to a single report. (Example: NonTcrSample can be used to restrict scrape to Other Chemical Samples only.) No validiation is performed to ensure entry is a valid report.')
+	parser.add_argument('--drilldowns', nargs='?', help='Optional. Typically used for development/debugging only. Pass N or False to avoid drilling down if links are available in a report.')
 	parser.add_argument('--ignorelogs', nargs='?', help='Optional. Typically used for development/debugging only. Pass Y or True to scrape all data even for WSNs that have already been logged as scraped.')
 	parser.add_argument('--overwrite_wsn_file', nargs='?', help="Optional. Typically used for development/debugging only. Pass Y or True to download a new WSN list, overwriting an existing one if it exists")
 	args = parser.parse_args()
@@ -775,6 +785,7 @@ def get_arguments():
 	startdate = args.startdate
 	enddate = args.enddate
 	report = args.report
+	drilldowns = args.drilldowns
 	ignorelogs = args.ignorelogs
 	overwrite_wsn_file = args.overwrite_wsn_file
 	ok = True
@@ -825,6 +836,9 @@ def get_arguments():
 	if report:
 		print('Output restricted to reports containing ' + report + ' in the URL')
 
+	if drilldowns:
+		print('Ignoring drilldown reports')
+
 	if ignorelogs:
 		print('Ignoring the logs and scraping all data even if previously logged as scraped')
 
@@ -841,6 +855,7 @@ def get_arguments():
 					   begin_date=startdate, 
 					   end_date=enddate, 
 					   report_to_scrape=report, 
+					   drilldowns=drilldowns,
 					   ignore_logs=ignorelogs,
 					   overwrite_wsn_file=overwrite_wsn_file,
 					   task_id=task_id)
@@ -855,4 +870,16 @@ def get_arguments():
 
 
 if __name__ == '__main__':       
-	get_arguments()
+	# get_arguments()
+	s = WebScraper('AZ', 
+				   num_wsns_to_scrape=1, 
+				   wsnumber='AZ0410051', 
+				   begin_date='12/01/2023', 
+				   end_date='01/09/2024', 
+				   report_to_scrape='TcrSampleResults',
+				   drilldowns=False,
+				   ignore_logs=True,
+				   # overwrite_wsn_file=overwrite_wsn_file,
+				   # task_id=task_id
+				   )
+	s.scrape()
