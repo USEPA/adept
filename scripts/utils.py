@@ -942,5 +942,12 @@ def get_column_headers(soup, header_index, nested_table_columns=[]):
 
 
 def get_num_table_cells(soup):
-	tds = soup.find('table').find('tr').find_all('td')
+	tds = soup.find('tr').find_all('td')
 	return(len(tds))
+
+
+def pretty_print_soup(soup):
+	try:
+		print(soup.prettify())
+	except:
+		print('EMPTY SOUP')

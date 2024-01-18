@@ -484,6 +484,8 @@ class WebScraper():
 			# print('header_index = ' + str(self.header_index))
 
 			try:
+				print(self.table_type)
+				print(utils.pretty_print_soup(table))
 				if self.table_type == 'rows':
 					report_table = utils.get_table_df(table, header=self.header_index)
 					if 'NonTcrSamples.jsp' in self.current_report_url:
@@ -507,8 +509,9 @@ class WebScraper():
 
 				rows = table.find_all('tr', recursive=False)
 				if not rows:
-					rows = table.find_all('tr', recursive=True)
-				rows = rows[self.header_index+1:] 
+					rows = table.find(['tbody']).find_all('tr', recursive=False)
+				else:	
+					rows = rows[self.header_index+1:] 
 
 				for row in rows:
 					base_report_row = [self.wsnumber] 	
@@ -520,15 +523,12 @@ class WebScraper():
 							pass
 						base_report_row.append(utils.clean_string(td.text))
 					# print(base_report_row)
-
 					subtable = row.find('table')
 					try:
 						if utils.get_num_table_cells(subtable) > 4:
 							for td in subtable.select('tr td:nth-of-type(2)'): # TODO: some, but not all, states have an extraneous, empty cell in the coliform samples report (in the second column) - find a dynamic way to identify these
 								td.decompose()
 						subtrs = subtable.find_all('tr', recursive=False)
-						if not subtrs:
-							subtras = subtable.find_all('tr', recursive=True)
 					except AttributeError:  # sometimes there is no data/subtable (might just have text like "Entire Sample Rejected: Other" as in MO)
 						# print(table)
 						# print(self.header_index)
@@ -541,13 +541,11 @@ class WebScraper():
 					num_subtable_rows = len(subtrs)	
 					for n in range(0, num_subtable_rows):
 						subreport_row = base_report_row[0: nested_table_columns[0]+1] # TODO: this will only work if there is a single subtable per row
-						print(subreport_row)
 						for td in subtrs[n].find_all('td'):
 							subreport_row.append(utils.clean_string(td.text))
 						subreport_row.append(base_report_row[len(base_report_row)-1])
 						working_report_table.loc[len(working_report_table.index)] = subreport_row
 					report_table = working_report_table
-					# print(report_table)	
 
 			elif self.table_type == 'columns':
 				report_table.dropna(how='all', axis='columns', inplace=True)
@@ -871,10 +869,10 @@ def get_arguments():
 
 if __name__ == '__main__':       
 	# get_arguments()
-	s = WebScraper('AZ', 
+	s = WebScraper('NM', 
 				   num_wsns_to_scrape=1, 
-				   wsnumber='AZ0410051', 
-				   begin_date='12/01/2023', 
+				   # wsnumber='TX0010003', 
+				   begin_date='01/01/2023', 
 				   end_date='01/09/2024', 
 				   report_to_scrape='TcrSampleResults',
 				   drilldowns=False,
@@ -882,4 +880,15 @@ if __name__ == '__main__':
 				   # overwrite_wsn_file=overwrite_wsn_file,
 				   # task_id=task_id
 				   )
+	# s = WebScraper('AZ', 
+	# 			   num_wsns_to_scrape=1, 
+	# 			   wsnumber='AZ0410051', 
+	# 			   begin_date='12/01/2023', 
+	# 			   end_date='01/09/2024', 
+	# 			   report_to_scrape='TcrSampleResults',
+	# 			   drilldowns=False,
+	# 			   ignore_logs=True,
+	# 			   # overwrite_wsn_file=overwrite_wsn_file,
+	# 			   # task_id=task_id
+	# 			   )
 	s.scrape()

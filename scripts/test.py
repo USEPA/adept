@@ -2,7 +2,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import utils
 
-current_report_url = 'https://azsdwis.azdeq.gov/DWW_EXT/JSP/TcrSampleResults.jsp?tinwsys_is_number=2004&tinwsys_st_code=AZ&begin_date=12/01/2023&end_date=01/09/2024&counter=0'
+current_report_url = 'https://dww.water.net.env.nm.gov/NMDWW/JSP/TcrSampleResults.jsp?tinwsys_is_number=5&tinwsys_st_code=NM&begin_date=01/01/2023&end_date=01/09/2024&counter=0'
 header_index = None
 
 html = utils.get_html(current_report_url)
@@ -17,7 +17,6 @@ for table in soup.find_all('table'):
 	else:
 		table_title = utils.get_table_title(soup, table_index)
 		header_index = utils.get_table_header_index(table, table_title)
-
 
 	if (((table_title == 'Water System Detail Information' or table_title == 'Water System Details') 
 		 and 'WaterSystemDetail.jsp' not in current_report_url) or 
@@ -35,4 +34,24 @@ for table in soup.find_all('table'):
 		column_headers.append('Sample Pt Description Detail')
 		working_report_table = pd.DataFrame(columns=column_headers)
 
-		print(column_headers)
+		rows = table.find_all('tr', recursive=False)
+		if not rows:
+			rows = table.find(['tbody']).find_all('tr', recursive=False)
+		print(rows)
+		exit()	
+
+		rows = rows[header_index+1:] 
+
+		for row in rows:
+			utils.print_pretty_soup(row)
+			base_report_row = [wsnumber] 	
+			row_copy = copy.copy(row)
+			for td in row_copy.find_all('td', recursive=False):
+				try:
+					td.find('table').decompose()
+				except:
+					pass
+				base_report_row.append(utils.clean_string(td.text))
+			# print(base_report_row)
+			subtable = row.find('table')
+			utils.print_pretty_soup(subtable)
