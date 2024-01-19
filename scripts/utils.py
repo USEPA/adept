@@ -885,6 +885,8 @@ def get_new_url(url):
 def get_nested_table_column_indexes(soup, header_index):
 	nested_table_columns = []
 	rows = soup.find_all('tr', recursive=False)
+	if not rows:
+		rows = soup.find_all('tr', recursive=True)
 	i = -1
 	try:
 		for td in rows[header_index+1].find_all('td', recursive=False):
@@ -916,6 +918,8 @@ def get_nested_table_column_headers(soup, header_index, nested_table_columns):
 def get_column_headers(soup, header_index, nested_table_columns=[]):
 	column_headers = []
 	rows = soup.find_all('tr', recursive=False)
+	if not rows:
+		rows = soup.find_all('tr', recursive=True)
 	i = 0
 	for td in rows[header_index].find_all(['td','th'], recursive=False):
 		if i in nested_table_columns:
@@ -928,4 +932,14 @@ def get_column_headers(soup, header_index, nested_table_columns=[]):
 	column_headers = [clean_string(x) for x in column_headers]
 	return column_headers
 
+
+def get_num_table_cells(soup):
+	tds = soup.find('tr').find_all('td')
+	return(len(tds))
+
+def pretty_print_soup(soup):
+	try:
+		print(soup.prettify())
+	except:
+		print('EMPTY SOUP')
 
