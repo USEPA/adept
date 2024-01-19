@@ -484,10 +484,11 @@ class WebScraper():
 			# print('header_index = ' + str(self.header_index))
 
 			try:
-				print(self.table_type)
-				print(utils.pretty_print_soup(table))
 				if self.table_type == 'rows':
-					report_table = utils.get_table_df(table, header=self.header_index)
+					try:
+						report_table = utils.get_table_df(table, header=self.header_index)
+					except ValueError:
+						report_table = utils.get_table_df(table, header=self.header_index-1)
 					if 'NonTcrSamples.jsp' in self.current_report_url:
 						# sometimes in this report there are multiple rows with the same sample number that link to 
 						# different sample results, so add a column containing the unique sample identifier from the URL
@@ -868,27 +869,4 @@ def get_arguments():
 
 
 if __name__ == '__main__':       
-	# get_arguments()
-	s = WebScraper('NM', 
-				   num_wsns_to_scrape=1, 
-				   # wsnumber='TX0010003', 
-				   begin_date='01/01/2023', 
-				   end_date='01/09/2024', 
-				   report_to_scrape='TcrSampleResults',
-				   drilldowns=False,
-				   ignore_logs=True,
-				   # overwrite_wsn_file=overwrite_wsn_file,
-				   # task_id=task_id
-				   )
-	# s = WebScraper('AZ', 
-	# 			   num_wsns_to_scrape=1, 
-	# 			   wsnumber='AZ0410051', 
-	# 			   begin_date='12/01/2023', 
-	# 			   end_date='01/09/2024', 
-	# 			   report_to_scrape='TcrSampleResults',
-	# 			   drilldowns=False,
-	# 			   ignore_logs=True,
-	# 			   # overwrite_wsn_file=overwrite_wsn_file,
-	# 			   # task_id=task_id
-	# 			   )
-	s.scrape()
+	get_arguments()
