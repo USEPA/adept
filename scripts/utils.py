@@ -9,6 +9,7 @@ import pathlib
 from datetime import datetime
 import glob
 import ntpath
+from io import StringIO
 from selenium import webdriver
 from selenium.common import exceptions
 from selenium.webdriver.chrome.options import Options
@@ -775,9 +776,16 @@ def build_payload_params(href, html):
 
 
 def get_table_df(table, header=None):
-	df = pd.read_html(str(table), header=header)[0]
+	skiprows = None
+	try:
+		df = pd.read_html(StringIO(str(table)), header=header)[0]
+	except (ValueError, IndexError):
+		header = 0
+		skiprows = 1
+		df = pd.read_html(StringIO(str(table)), skiprows=skiprows, header=header)[0]
 	converters = {i:str for i in range(len(df.columns))}
-	return pd.read_html(str(table), header=header, converters=converters)[0]
+	df = pd.read_html(StringIO(str(table)), skiprows=skiprows, header=header, converters=converters)[0]
+	return df
 
 
 def get_datestamp_suffix():
@@ -937,9 +945,21 @@ def get_num_table_cells(soup):
 	tds = soup.find('tr').find_all('td')
 	return(len(tds))
 
-def pretty_print_soup(soup):
+
+def pretty_print_soup(soup, save_to_file=False):
 	try:
-		print(soup.prettify())
+		pretty = soup.prettify()
+		print(pretty)
+		with open('temp.html', 'w') as f:
+			f.write(pretty)
 	except:
 		print('EMPTY SOUP')
+
+
+
+def pretty_print_df(df):
+	pd.set_option('display.max_columns', None)
+	pd.set_option('display.max_rows', None)
+	print(df)
+	print(f'Dataframe contains {len(df)} rows.')
 

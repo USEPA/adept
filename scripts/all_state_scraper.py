@@ -153,16 +153,7 @@ class WebScraper():
 								writer.writerow(params)
 
 				elif self.token_state:
-					# if self.state == 'KS':
-					# 	try:
-					# 		self.driver = utils.load_wsn_search_ks(self.driver, session_token=self.token)
-					# 	except Exception as e:
-					# 		self.run_logger.error('Unable to load WSN search, aborting. Error message: %s', e)
-					# 		self.run_logger.info('Scrape ended; Task ID %s', self.task_id)
-					# 		exit()
-					# else:
-					self.driver = utils.load_wsn_search(self.driver)
-					
+					self.driver = utils.load_wsn_search(self.driver)					
 					url = self.state_url + '?OWASP-CSRFTOKEN=' + self.token
 					self.run_logger.debug('url = %s', url)
 					data = {'OWASP-CSRFTOKEN': self.token}
