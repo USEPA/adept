@@ -861,15 +861,3 @@ def get_arguments():
 
 if __name__ == '__main__':       
 	get_arguments()
-	# s = WebScraper('AZ', 
-	# 			   num_wsns_to_scrape=1, 
-	# 			   wsnumber='AZ0410051', 
-	# 			   begin_date='12/01/2023', 
-	# 			   end_date='01/09/2024', 
-	# 			   report_to_scrape='TcrSampleResults',
-	# 			   drilldowns=False,
-	# 			   ignore_logs=True,
-	# 			   # overwrite_wsn_file=overwrite_wsn_file,
-	# 			   # task_id=task_id
-	# 			   )
-	# s.scrape()
