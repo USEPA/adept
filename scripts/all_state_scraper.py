@@ -48,7 +48,7 @@ class WebScraper():
 				 report_to_scrape=None, 
 				 drilldowns=True,
 				 ignore_logs=False,
-				 overwrite_wsn_file=False,
+				 overwrite_wsn_file=True,
 				 task_id=None):
 		self.state = state 
 		self.state_url = api_handler.get_url(state)
@@ -416,12 +416,13 @@ class WebScraper():
 	def write_table_data(self, join_column=None, parent_table_title=None, payload=None, parent_html=None, in_drilldown=False):
 		self.run_logger.info('Report URL is %s', self.current_report_url)
 		# print(join_column)
-		html = ''
+
 		try:
 			if payload:
 				html = utils.get_html_post(self.current_report_url, self.session, payload)
 			elif self.state == 'WY' or self.state == 'R8':
 				html = self.load_wyr8(self.current_report_url, wyr8=self.state.replace('R8','08') )
+				# print(html)
 			else:
 				html = utils.get_html(self.current_report_url)
 		except Exception as e:
@@ -869,3 +870,15 @@ def get_arguments():
 
 if __name__ == '__main__':       
 	get_arguments()
+	# s = WebScraper('AZ', 
+	# 			   num_wsns_to_scrape=1, 
+	# 			   wsnumber='AZ0410051', 
+	# 			   begin_date='12/01/2023', 
+	# 			   end_date='01/09/2024', 
+	# 			   report_to_scrape='TcrSampleResults',
+	# 			   drilldowns=False,
+	# 			   ignore_logs=True,
+	# 			   # overwrite_wsn_file=overwrite_wsn_file,
+	# 			   # task_id=task_id
+	# 			   )
+	# s.scrape()
