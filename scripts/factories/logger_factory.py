@@ -6,7 +6,7 @@ from pathlib import Path
 
 class LoggerFactory:
     @staticmethod
-    def build_logger(log_location, name='run'):
+    def build_logger(log_location, name='run', log_level='INFO'):
         logger_name = name + '_logger'
         logger = logging.getLogger(logger_name)
 
@@ -28,7 +28,21 @@ class LoggerFactory:
         hdlr.setFormatter(formatter)
         logger.addHandler(hdlr)
 
-        logger.setLevel(logging.DEBUG)
+        match log_level.upper():
+            case 'DEBUG':
+                logger.setLevel(logging.DEBUG)
+            case 'INFO':
+                logger.setLevel(logging.INFO)
+            case 'WARNING':
+                logger.setLevel(logging.WARNING)
+            case 'ERROR':
+                logger.setLevel(logging.ERROR)
+            case 'CRITICAL':
+                logger.setLevel(logging.CRITICAL)
+            case _:
+                print('Unknown log_level ' + log_level)
+                exit()
+
         return logger
     
     @staticmethod    

@@ -49,7 +49,8 @@ class WebScraper():
 				 drilldowns=True,
 				 ignore_logs=False,
 				 overwrite_wsn_file=True,
-				 task_id=None):
+				 task_id=None,
+				 log_level='INFO'):
 		self.state = state 
 		self.state_url = api_handler.get_url(state)
 		self.begin_date = utils.get_begin_date(begin_date)
@@ -61,7 +62,8 @@ class WebScraper():
 		self.ignore_logs = ignore_logs
 		self.overwrite_wsn_file = overwrite_wsn_file
 		self.task_id = task_id
-		self.run_logger = LoggerFactory.build_logger(constants.RUN_LOG.replace('XX', self.state))
+		self.log_level = log_level
+		self.run_logger = LoggerFactory.build_logger(constants.RUN_LOG.replace('XX', self.state), log_level=self.log_level)
 		self.wsn_report_logger = LoggerFactory.build_logger(constants.WSN_LOG.replace('XX', self.state), 'wsn')
 		self.wsn_report_log = constants.WSN_LOG.replace('XX', self.state) 
 		self.wsn_file = constants.WSN_SAVE_LOCATION.replace('XX', self.state) 
@@ -70,13 +72,16 @@ class WebScraper():
 	
 	def get_token_state(self):
 		if self.state in api_handler.csrf_token_states:
+			self.run_logger.debug('%s is a "token state"', self.state)
 			return True  
 		else:
+			self.run_logger.debug('%s is not a "token state"', self.state)
 			return False
 
 
 	def get_driver(self):
 		driver = utils.get_selenium_driver(state_url=self.state_url, log=self.run_logger)
+		self.run_logger.debug('Selenium driver started')
 		return driver
 
 
@@ -98,6 +103,7 @@ class WebScraper():
 			cookies = cookies + cookie['name'] + '=' + cookie['value'] + '; '
 		cookies = cookies[:-2]
 		s.headers['Cookie'] = cookies
+		self.run_logger.debug('Sessions started; cookies set')
 		return s
 
 
@@ -161,7 +167,7 @@ class WebScraper():
 					req =  request.Request(url, data=data) 
 					resp = request.urlopen(req)
 					self.driver.find_element(By.NAME, 'action').click()
-					self.run_logger.debug('url = %s', self.driver.current_url)                    
+					self.run_logger.test('url = %s', self.driver.current_url)                    
 					url_text = self.driver.page_source
 					anchors = BeautifulSoup(url_text, features='lxml').findAll('a', href=lambda href: href and 'viewData(' in href)
 					for a in anchors:
@@ -191,6 +197,7 @@ class WebScraper():
 								params = utils.get_ids_from_href(a['href'])
 								writer.writerow(params)
 			self.get_wsns()
+			self.run_logger.debug('There are %s WSNs to scrape', len(self.wsn_list))
 	
 
 	def load_wyr8(self, url, wyr8='WY'):
@@ -284,6 +291,7 @@ class WebScraper():
 					if self.report_to_scrape not in url:
 						self.nav_list.remove(url)
 
+		self.run_logger.debug('nav_list = %s', self.nav_list)
 
 
 	def get_dated_reports(self):
@@ -341,6 +349,9 @@ class WebScraper():
 		header_index = indexes[0]
 		first_data_row_index = indexes[1]
 		col_headers = utils.get_col_headers(table_html, header_index)
+		self.run_logger.debug('header_index = %s', header_index)
+		self.run_logger.debug('first_data_row_index = %s', first_data_row_index)
+		self.run_logger.debug('col_headers = %s', col_headers)
 
 		i = -1
 		drilldown_links = []
@@ -377,7 +388,7 @@ class WebScraper():
 
 		if drilldown_links:
 			self.run_logger.info('Found drilldown links, processing now...')
-			# print(drilldown_links)
+			# self.run_logger.debug('Drilldown links = %s', drilldown_links)
 
 		for link in drilldown_info:
 			self.current_report_url = link[0]
@@ -406,7 +417,6 @@ class WebScraper():
 
 	def write_table_data(self, join_column=None, parent_table_title=None, payload=None, parent_html=None, in_drilldown=False):
 		self.run_logger.info('Report URL is %s', self.current_report_url)
-		# print(join_column)
 
 		try:
 			if payload:
@@ -420,12 +430,14 @@ class WebScraper():
 			self.run_logger.error('Unable to open %s for WSN %s: %s', self.current_report_url, self.wsnumber, e)
 			return False
 
+		self.run_logger.debug(html)
+
 		soup = BeautifulSoup(html,'lxml')
 		try:
 			page_title = soup.find('title').text
 		except:
 			page_title = None
-		# self.run_logger.debug('page_title = %s', page_title)
+		self.run_logger.debug('page_title = %s', page_title)
 
 		# loop through nested tables to get down to report tables
 		table_index = -1 # we will need the index of each table so start a counter
@@ -444,14 +456,6 @@ class WebScraper():
 				self.table_title = utils.get_table_title(soup, table_index)
 				self.table_type = utils.get_table_type(table, self.table_title)
 				self.header_index = utils.get_table_header_index(table, self.table_title)
-			
-			# if parent_html:
-			# 	print(table)
-			# 	print('table_title = ' + self.table_title)
-			# 	print('table_index = ' + str(table_index))
-			# 	print('table type = ' + self.table_type)
-			# 	print('header_index = ' + str(self.header_index))
-			# 	print('-------------------------------------------------------------------------------------------------------------------------------------')
 
 			if (((self.table_title == 'Water System Detail Information' or self.table_title == 'Water System Details') 
 				 and 'WaterSystemDetail.jsp' not in self.current_report_url) or 
@@ -459,7 +463,18 @@ class WebScraper():
 				 and 'WaterSystemFacilities.jsp' not in self.current_report_url)):
 				# We only want to collect the Water System Detail Information from the WasterSystemDetails page
 				# and Water System Facilities from the WaterSystemFacilities page
+				self.run_logger.debug("Found a report table but it's Water System Details or Facility Details on a page where it repeats so skipping")
 				continue
+
+			self.run_logger.debug('----------------------------------------------------------------------------------------')
+			self.run_logger.debug('table:')
+			self.run_logger.debug(table)
+			self.run_logger.debug('----------------------------------------------------------------------------------------')
+			self.run_logger.debug('table_title = %s', self.table_title)
+			self.run_logger.debug('table_index = %s', table_index)
+			self.run_logger.debug('table type = %s', self.table_type)
+			self.run_logger.debug('header_index = %s', self.header_index)
+			self.run_logger.debug('-------------------------------------------------------------------------------------------------------------------------------------')
 
 			if parent_table_title and self.table_title == parent_table_title:
 				# When drilling down, it's possible for the table title to be the same as the 
@@ -472,7 +487,9 @@ class WebScraper():
 			self.run_logger.info(f'Working on {self.wsnumber}: {self.table_title} . . .')
 			self.report_file_name = self.state + '_' + self.table_title + self.rundate_suffix + '.tmp'
 			self.report_file_path = self.report_group_dir + '/' + self.report_file_name
-			# print('header_index = ' + str(self.header_index))
+
+			self.run_logger.debug('report_file_name = %s', self.report_file_name)
+			self.run_logger.debug('report_file_path = %s', self.report_file_path)
 
 			try:
 				if self.table_type == 'rows':
@@ -492,12 +509,25 @@ class WebScraper():
 				# which will throw an error; in that case, skip and go to next table
 				continue
 
+			self.run_logger.debug('----------------------------------------------------------------------------------------')
+			self.run_logger.debug('report_table:')
+			self.run_logger.debug(report_table)
+			self.run_logger.debug('----------------------------------------------------------------------------------------')
+
 			nested_table_columns = utils.get_nested_table_column_indexes(table, self.header_index)
+			self.run_logger.debug('nested_table_columns = %s', nested_table_columns)
+
 			if len(nested_table_columns) > 0 and ('Coliform' in self.table_title or 'TCR' in self.table_title or 'Long Term 2' in self.table_title): # TX-like states have nested tables in the coliform sample report
 				column_headers = utils.get_column_headers(table, self.header_index, nested_table_columns)
 				column_headers.insert(0, 'Water System No.')
 				column_headers.append('Sample Pt Description Detail')
 				working_report_table = pd.DataFrame(columns=column_headers)
+
+				self.run_logger.debug('column_headers = %s', column_headers)
+				self.run_logger.debug('----------------------------------------------------------------------------------------')
+				self.run_logger.debug('working_report_table:')
+				self.run_logger.debug(working_report_table)
+				self.run_logger.debug('----------------------------------------------------------------------------------------')
 
 				rows = table.find_all('tr', recursive=False)
 				if not rows:
@@ -505,6 +535,7 @@ class WebScraper():
 				else:	
 					rows = rows[self.header_index+1:] 
 
+				self.run_logger.debug('There are %s rows in the table "table"', len(rows))
 				for row in rows:
 					base_report_row = [self.wsnumber] 	
 					row_copy = copy.copy(row)
@@ -514,7 +545,7 @@ class WebScraper():
 						except:
 							pass
 						base_report_row.append(utils.clean_string(td.text))
-					# print(base_report_row)
+					# self.run_logger.debug('base_report_row = %s', base_report_row)
 					subtable = row.find('table')
 					try:
 						if utils.get_num_table_cells(subtable) > 4:
@@ -531,6 +562,7 @@ class WebScraper():
 						subtrs = BeautifulSoup('<tr>' + empty_cells + '</tr>', features='lxml').find_all('tr')
 
 					num_subtable_rows = len(subtrs)	
+					self.run_logger.debug('There are %s rows in the nested subtable', len(num_subtable_rows))
 					for n in range(0, num_subtable_rows):
 						subreport_row = base_report_row[0: nested_table_columns[0]+1] # TODO: this will only work if there is a single subtable per row
 						for td in subtrs[n].find_all('td'):
@@ -631,6 +663,7 @@ class WebScraper():
 		for report_url in self.nav_list:
 			# get the report group name, which is the subfolder to save to
 			report_group_name = utils.get_report_group_from_url(report_url)
+			self.run_logger.debug('Working on report_group_name %s', report_group_name)
 
 			if not self.ignore_logs:
 				df = utils.get_completed_report_for_wsn(self.wsnumber, report_group_name, self.completed_wsns)	
@@ -638,6 +671,7 @@ class WebScraper():
 				df = pd.DataFrame()
 
 			if len(df) > 0:
+				self.run_logger.debug('This WSN has been scraped previously for %s, checking if there is new data...', report_group_name)
 				if report_group_name in self.dated_reports:
 					report_end_date = datetime.strptime(constants.END_DATE, '%m/%d/%Y')
 					new_date = df.iloc[0]['End Date'] - timedelta(days=90)
@@ -648,10 +682,12 @@ class WebScraper():
 						self.run_logger.info('Setting report begin date to %s', self.begin_date)
 					else:
 						# This report has date ranges but this WSN is scraped up to date to go to next report
+						self.run_logger.debug('This is a dated report but this WSN has been scraped within 90 days of the last scrape; skipping')
 						continue
 				else:
 					# This report doesn't have date ranges and we've already scraped this it for this WSN 
 					# so go to the next report
+					self.run_logger.debug('This is not a dated report; skipping')
 					continue
 
 			self.report_group_dir = constants.DATA_DIR.replace('XX', self.state) + report_group_name
@@ -665,13 +701,19 @@ class WebScraper():
 			else:
 				# build the report URL
 				self.current_report_url = self.build_current_report_url(report_url)
+			self.run_logger.debug('Current report URL is %s', self.current_report_url)
 			# scrape the tables
-			self.run_logger.debug('Working on %s report group', report_group_name)
+			self.run_logger.info('Working on %s report group', report_group_name)
 			scraped = self.write_table_data(payload=payload)
 			# log the report
 			if scraped:
 				self.wsn_report_logger.info('%s, %s, %s, %s', self.wsnumber, report_group_name, self.begin_date, self.end_date)
+				self.run_logger.debug('Scraped %s for %s', report_group_name, self.wsnumber)
+				if report_group_name in self.dated_reports:
+					self.run_logger.debug('Dated report %s: %s to %s', report_group_name, self.begin_date, self.end_date)
 				found_data = True
+			else:
+				self.run_logger.debug('No data scraped!')
 		if not found_data:
 			self.run_logger.info('No new data found for %s',  self.wsnumber)
 
@@ -713,9 +755,10 @@ class WebScraper():
 					if msg:
 						self.run_logger.error('%s', msg)
 						exit()
+		self.run_logger.debug('State URL %s opens OK, proceeding', v)
 
-	def scrape(self):
-		self.run_logger.info('Starting scrape for Task ID: %s', self.task_id)
+
+	def setup(self):
 		self.test_state_url()
 		self.token_state = self.get_token_state()
 		if self.token_state:
@@ -729,8 +772,19 @@ class WebScraper():
 		self.get_nav_list()
 		self.get_dated_reports()
 
-		self.completed_wsns = utils.get_completed_wsn_reports(self.wsn_report_log)
+		if not self.ignore_logs:
+			self.completed_wsns = utils.get_completed_wsn_reports(self.wsn_report_log)
+		else:
+			self.completed_wsns = pd.DataFrame()
+			self.run_logger.debug('IGNORING LOGS; scraping everything')
+
 		self.make_dirs()
+
+
+	def scrape(self):
+		if self.task_id:
+			self.run_logger.info('Starting scrape for Task ID: %s', self.task_id)
+		self.setup()
 
 		for wsn in self.wsn_list:
 			self.wsnumber = str(wsn[0])
@@ -744,7 +798,8 @@ class WebScraper():
 
 		self.delete_dirs()
 
-		self.run_logger.info('Scrape complete for Task ID: %s', self.task_id)
+		if self.task_id:
+			self.run_logger.info('Scrape complete for Task ID: %s', self.task_id)
 
 		try:
 			self.driver.close()

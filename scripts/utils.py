@@ -956,10 +956,20 @@ def pretty_print_soup(soup, save_to_file=False):
 		print('EMPTY SOUP')
 
 
-
 def pretty_print_df(df):
 	pd.set_option('display.max_columns', None)
 	pd.set_option('display.max_rows', None)
 	print(df)
 	print(f'Dataframe contains {len(df)} rows.')
 
+
+def find_report_tables(url):
+	html = get_html(report_url)
+	soup = BeautifulSoup(html, 'lxml') 
+	table_index = -1 
+	for table in soup.find_all('table'):
+		table_index += 1
+		print('table_index = ' + str(table_index))
+		pretty_print_soup(table)
+		print(test_table(table))
+		print('-----------------------------------------------------------------------------------------------------------------------------------------------------')
