@@ -28,20 +28,32 @@ class LoggerFactory:
         hdlr.setFormatter(formatter)
         logger.addHandler(hdlr)
 
-        match log_level.upper():
-            case 'DEBUG':
-                logger.setLevel(logging.DEBUG)
-            case 'INFO':
-                logger.setLevel(logging.INFO)
-            case 'WARNING':
-                logger.setLevel(logging.WARNING)
-            case 'ERROR':
-                logger.setLevel(logging.ERROR)
-            case 'CRITICAL':
-                logger.setLevel(logging.CRITICAL)
-            case _:
-                print('Unknown log_level ' + log_level)
-                exit()
+        # match statement only works in >= Python 3.10
+        # match log_level.upper():
+        #     case 'DEBUG':
+        #         logger.setLevel(logging.DEBUG)
+        #     case 'INFO':
+        #         logger.setLevel(logging.INFO)
+        #     case 'WARNING':
+        #         logger.setLevel(logging.WARNING)
+        #     case 'ERROR':
+        #         logger.setLevel(logging.ERROR)
+        #     case 'CRITICAL':
+        #         logger.setLevel(logging.CRITICAL)
+        #     case _:
+        #         logger.setLevel(logging.INFO)
+        if log_level.upper() == 'DEBUG':
+            logger.setLevel(logging.DEBUG)
+        elif log_level.upper() == 'INFO':
+            logger.setLevel(logging.INFO)
+        elif log_level.upper() == 'WARNING':
+            logger.setLevel(logging.WARNING)
+        elif log_level.upper() == 'ERROR':
+            logger.setLevel(logging.ERROR)
+        elif log_level.upper() == 'CRITICAL':
+            logger.setLevel(logging.CRITICAL)
+        else:
+            logger.setLevel(logging.INFO)
 
         return logger
     
