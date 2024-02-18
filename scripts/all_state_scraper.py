@@ -16,7 +16,9 @@ from datetime import timedelta, datetime
 import requests 
 import argparse
 import copy
+import psutil;
 
+g_memchk = True;
 
 class WebScraper():
 	wsn_list = None
@@ -167,7 +169,7 @@ class WebScraper():
 					req =  request.Request(url, data=data) 
 					resp = request.urlopen(req)
 					self.driver.find_element(By.NAME, 'action').click()
-					self.run_logger.test('url = %s', self.driver.current_url)                    
+					#self.run_logger.test('url = %s', self.driver.current_url)                    
 					url_text = self.driver.page_source
 					anchors = BeautifulSoup(url_text, features='lxml').findAll('a', href=lambda href: href and 'viewData(' in href)
 					for a in anchors:
@@ -198,8 +200,11 @@ class WebScraper():
 								writer.writerow(params)
 			self.get_wsns()
 			self.run_logger.debug('There are %s WSNs to scrape', len(self.wsn_list))
-	
 
+			if g_memchk:
+				pmem = psutil.Process().memory_info();
+				self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20));
+	
 	def load_wyr8(self, url, wyr8='WY'):
 		html = self.session.get(self.state_url).text
 		soup = BeautifulSoup(html, features='lxml')
@@ -414,6 +419,9 @@ class WebScraper():
 			self.run_logger.info('Working on %s %s', col_header, link[1])
 			self.write_table_data(join_column=join_column, parent_table_title=table_title, payload=payload, parent_html=full_html, in_drilldown=True)
 
+			if g_memchk:
+				pmem = psutil.Process().memory_info();
+				self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20));
 
 	def write_table_data(self, join_column=None, parent_table_title=None, payload=None, parent_html=None, in_drilldown=False):
 		self.run_logger.info('Report URL is %s', self.current_report_url)
@@ -490,6 +498,10 @@ class WebScraper():
 
 			self.run_logger.debug('report_file_name = %s', self.report_file_name)
 			self.run_logger.debug('report_file_path = %s', self.report_file_path)
+
+			if g_memchk:
+				pmem = psutil.Process().memory_info();
+				self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20));
 
 			try:
 				if self.table_type == 'rows':
@@ -658,12 +670,17 @@ class WebScraper():
 
 	def scrape_wsn(self):
 		self.run_logger.info('Working on %s', self.wsnumber)
+
 		found_data = False
 
 		for report_url in self.nav_list:
 			# get the report group name, which is the subfolder to save to
 			report_group_name = utils.get_report_group_from_url(report_url)
 			self.run_logger.debug('Working on report_group_name %s', report_group_name)
+
+			if g_memchk:
+				pmem = psutil.Process().memory_info();
+				self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20));
 
 			if not self.ignore_logs:
 				df = utils.get_completed_report_for_wsn(self.wsnumber, report_group_name, self.completed_wsns)	
@@ -705,6 +722,11 @@ class WebScraper():
 			# scrape the tables
 			self.run_logger.info('Working on %s report group', report_group_name)
 			scraped = self.write_table_data(payload=payload)
+
+			if g_memchk:
+				pmem = psutil.Process().memory_info();
+				self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20));
+
 			# log the report
 			if scraped:
 				self.wsn_report_logger.info('%s, %s, %s, %s', self.wsnumber, report_group_name, self.begin_date, self.end_date)
@@ -833,6 +855,7 @@ def get_arguments():
 	drilldowns = args.drilldowns
 	ignorelogs = args.ignorelogs
 	overwrite_wsn_file = args.overwrite_wsn_file
+
 	ok = True
 
 	if not utils.check_valid_state(state):
