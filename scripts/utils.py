@@ -641,7 +641,7 @@ def get_col_headers(soup, header_index):
 
 def get_valid_states():
 	state_list = []
-	for state in api_handler.state_urls:
+	for state in api_handler.state_urls():
 		for k in state.keys():
 			state_list.append(k)
 	return state_list   

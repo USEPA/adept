@@ -1,0 +1,116 @@
+{
+   "state_urls": {
+       "AK": {
+          "url": "https://dec.alaska.gov/dww/"
+         ,"enabled": true
+       }
+      ,"AL": {
+          "url": "http://dww.adem.alabama.gov/DWW/"
+         ,"enabled": true
+       }
+      ,"AZ": {
+          "url": "https://azsdwis.azdeq.gov/DWW_EXT/"
+         ,"enabled": true
+       }
+      ,"CA": {
+          "url": "https://sdwis.waterboards.ca.gov/PDWW/"
+         ,"enabled": true
+       }
+      ,"DE": {
+          "url": "https://drinkingwater.dhss.delaware.gov/"
+         ,"enabled": true
+       }
+      ,"GA": {
+          "url": "https://gadrinkingwater.net/DWWPUB/"
+         ,"enabled": true
+       }
+      ,"IA": {
+          "url": "http://programs.iowadnr.gov/drinkingwaterwatch/"
+         ,"enabled": true
+       }
+      ,"ID": {
+          "url": "http://dww.deq.idaho.gov/IDPDWW/"
+         ,"enabled": true
+       }
+      ,"IL": {
+          "url": "https://water.epa.state.il.us/dww/"
+         ,"enabled": true
+       }
+      ,"KS": {
+          "url": "https://dww.kdhe.ks.gov/DWW/JSP/SearchDispatch"
+         ,"enabled": false
+       }
+      ,"KY": {
+          "url": "https://dep.gateway.ky.gov/DWW/"
+         ,"enabled": true
+       }
+      ,"MD": {
+          "url": "https://mdesdwis.mde.state.md.us/DWW/"
+         ,"enabled": true
+       }
+      ,"MO": {
+          "url": "https://www.dnr.mo.gov/DWW/"
+         ,"enabled": true
+       }
+      ,"MS": {
+          "url": "https://apps.msdh.ms.gov/DWW/"
+         ,"enabled": true
+       }
+      ,"MT": {
+          "url": "https://sdwisdww.mt.gov/DWW/"
+         ,"enabled": true
+       }
+      ,"NC": {
+          "url": "https://www.pwss.enr.state.nc.us/NCDWW2/"
+         ,"enabled": true
+       }
+      ,"NE": {
+          "url": "https://drinkingwater.ne.gov/"
+         ,"enabled": true
+       }
+      ,"NM": {
+          "url": "https://dww.water.net.env.nm.gov/NMDWW/"
+         ,"enabled": true
+       }
+      ,"NV": {
+          "url": "https://ndwis.ndep.nv.gov/DWW/"
+         ,"enabled": true
+       }
+      ,"OH":{
+          "url": "https://dww.epa.ohio.gov/DWW/"
+         ,"enabled": true
+       }
+      ,"OK": {
+          "url": "http://sdwis.deq.state.ok.us/DWW/"
+         ,"enabled": true
+       }
+      ,"RI": {
+          "url": "https://dwq.health.ri.gov/DWW/"
+         ,"enabled": true
+       }
+      ,"SC": {
+          "url": "http://dwwwebvm.dhec.sc.gov:8080/DWW/"
+         ,"enabled": true
+       }
+      ,"TX": {
+          "url": "https://dww2.tceq.texas.gov/DWW/"
+         ,"enabled": true
+       }
+      ,"VT": {
+          "url": "https://anrnode.anr.state.vt.us/DWW/"
+         ,"enabled": true
+       }
+      ,"WV": {
+          "url": "https://dww.wvdhhr.org/DWWpublic/"
+         ,"enabled": true
+       }
+      ,"WY": {
+          "url": "https://sdwisdww.epa.gov/DWWR8WY/"
+         ,"enabled": true
+       }
+      ,"R8": {
+          "url": "https://sdwisdww.epa.gov/DWWR8WY/"
+         ,"enabled": true
+       }
+   }
+}

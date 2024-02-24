@@ -1,5 +1,6 @@
 from factories.logger_factory import LoggerFactory
-import api_handler, constants, utils, cloudutils
+import api_handler
+import constants, utils, cloudutils
 
 import pandas as pd
 import numpy as np
@@ -18,7 +19,7 @@ import argparse
 import copy
 import psutil;
 
-g_memchk = True;
+g_memchk = False;
 
 class WebScraper():
 	wsn_list = None
@@ -52,7 +53,8 @@ class WebScraper():
 				 ignore_logs=False,
 				 overwrite_wsn_file=True,
 				 task_id=None,
-				 log_level='INFO'):
+				 log_level='INFO',
+				 override_config=None):
 		self.state = state 
 		self.state_url = api_handler.get_url(state)
 		self.begin_date = utils.get_begin_date(begin_date)
@@ -143,7 +145,7 @@ class WebScraper():
 					soup = BeautifulSoup(html, features='lxml')
 					form_action = soup.find('form')['action']
 					url = self.state_url + form_action
-					payload = {'state_code': self.state.replace('R8','08')}    
+					payload = {'state_code': self.state.replace('R8','08')}
 					self.session.post(url, data=payload)
 					url = self.state_url + 'JSP/SearchDispatch?number=&name=&county=All&WaterSystemType=All&SourceWaterType=All&PointOfContactType=None&SampleType=null&begin_date=BEGIN_DATE&end_date=END_DATE&action=Search+For+Water+Systems'
 					url = url.replace('BEGIN_DATE', self.begin_date).replace('END_DATE', self.end_date)
@@ -169,7 +171,7 @@ class WebScraper():
 					req =  request.Request(url, data=data) 
 					resp = request.urlopen(req)
 					self.driver.find_element(By.NAME, 'action').click()
-					#self.run_logger.test('url = %s', self.driver.current_url)                    
+					#self.run_logger.test('url = %s', self.driver.current_url)
 					url_text = self.driver.page_source
 					anchors = BeautifulSoup(url_text, features='lxml').findAll('a', href=lambda href: href and 'viewData(' in href)
 					for a in anchors:
@@ -210,7 +212,7 @@ class WebScraper():
 		soup = BeautifulSoup(html, features='lxml')
 		form_action = soup.find('form')['action']
 		pre_url = self.state_url + form_action
-		payload = {'state_code': wyr8.replace('R8','08') }    
+		payload = {'state_code': wyr8.replace('R8','08') }
 		self.session.post(pre_url, data=payload)
 		response = self.session.get(url)
 		html = response.text
@@ -336,14 +338,14 @@ class WebScraper():
 		tinwsys_st_code = self.wsn[2]
 		dwwstate = str(self.wsn[3])
 		payload = {'OWASP-CSRFTOKEN': self.token,
-		   'tinwsys_is_number': tinwsys_is_number,
-		   'tinwsys_st_code': tinwsys_st_code,
-		   'wsnumber': wsnumber,
-		   'DWWState': dwwstate,
-		   'begin_date': self.begin_date,
-		   'end_date': self.end_date,
-		   'counter': '0',
-		   'history': '0'}    
+			'tinwsys_is_number': tinwsys_is_number,
+			'tinwsys_st_code': tinwsys_st_code,
+			'wsnumber': wsnumber,
+			'DWWState': dwwstate,
+			'begin_date': self.begin_date,
+			'end_date': self.end_date,
+			'counter': '0',
+			'history': '0'}
 		return payload
 
 
@@ -467,7 +469,7 @@ class WebScraper():
 
 			if (((self.table_title == 'Water System Detail Information' or self.table_title == 'Water System Details') 
 				 and 'WaterSystemDetail.jsp' not in self.current_report_url) or 
-			   ((self.table_title == 'Water System Facilities' or self.table_title == 'Water System Facility Detail') 
+				((self.table_title == 'Water System Facilities' or self.table_title == 'Water System Facility Detail') 
 				 and 'WaterSystemFacilities.jsp' not in self.current_report_url)):
 				# We only want to collect the Water System Detail Information from the WasterSystemDetails page
 				# and Water System Facilities from the WaterSystemFacilities page
@@ -592,7 +594,7 @@ class WebScraper():
 					headers = report_table.iloc[:,header_indexes[0]].to_list()
 				for i in header_indexes[1:]:
 					headers.extend(report_table.iloc[:,i].to_list())
-				headers = [h for h in headers if not(pd.isnull(h)) == True]    
+				headers = [h for h in headers if not(pd.isnull(h)) == True]
 				headers = [h.replace(' :', '') for h in headers]
 				headers = [h.replace(':', '') for h in headers]
 				working_report_table = pd.DataFrame(columns=headers)
@@ -653,7 +655,7 @@ class WebScraper():
 						writer = csv.writer(write_file, quoting=csv.QUOTE_MINIMAL)
 						writer.writerow(list(report_table.columns))
 				
-				report_table.to_csv(self.report_file_path, mode='a', encoding='utf-8', index=False,  header=False)       
+				report_table.to_csv(self.report_file_path, mode='a', encoding='utf-8', index=False,  header=False)
 				self.run_logger.info('Wrote %s data to %s', self.table_title, self.report_file_path)
 
 				if self.token_state and not parent_html:
@@ -745,7 +747,7 @@ class WebScraper():
 			report_group_dir = constants.DATA_DIR.replace('XX', self.state) + utils.get_report_group_from_url(report_url)
 			if not path.exists(report_group_dir):
 				makedirs(path.normpath(report_group_dir))
-				self.run_logger.info('Created directory %s', report_group_dir)    
+				self.run_logger.info('Created directory %s', report_group_dir)
 
 
 	def delete_dirs(self):
@@ -762,7 +764,7 @@ class WebScraper():
 
 	def test_state_url(self):
 		msg = None
-		for state in api_handler.state_urls:
+		for state in api_handler.state_urls():
 			for k, v in state.items():
 				if k == self.state:
 					url_test = utils.test_url(v)
@@ -840,6 +842,9 @@ def get_arguments():
 	parser.add_argument('--drilldowns', nargs='?', help='Optional. Typically used for development/debugging only. Pass N or False to avoid drilling down if links are available in a report.')
 	parser.add_argument('--ignorelogs', nargs='?', help='Optional. Typically used for development/debugging only. Pass Y or True to scrape all data even for WSNs that have already been logged as scraped.')
 	parser.add_argument('--overwrite_wsn_file', nargs='?', help="Optional. Typically used for development/debugging only. Pass Y or True to download a new WSN list, overwriting an existing one if it exists")
+
+	parser.add_argument('--override_config', nargs='?', help="Optional JSON for overriding static configurations")
+
 	args = parser.parse_args()
 
 	try:
@@ -855,6 +860,7 @@ def get_arguments():
 	drilldowns = args.drilldowns
 	ignorelogs = args.ignorelogs
 	overwrite_wsn_file = args.overwrite_wsn_file
+	override_config = args.override_config
 
 	ok = True
 
@@ -918,15 +924,16 @@ def get_arguments():
 
 	try:	
 		s = WebScraper(state, 
-					   num_wsns_to_scrape=num_wsns_to_scrape, 
-					   wsnumber=wsnumber, 
-					   begin_date=startdate, 
-					   end_date=enddate, 
-					   report_to_scrape=report, 
-					   drilldowns=drilldowns,
-					   ignore_logs=ignorelogs,
-					   overwrite_wsn_file=overwrite_wsn_file,
-					   task_id=task_id)
+						num_wsns_to_scrape=num_wsns_to_scrape, 
+						wsnumber=wsnumber, 
+						begin_date=startdate, 
+						end_date=enddate, 
+						report_to_scrape=report, 
+						drilldowns=drilldowns,
+						ignore_logs=ignorelogs,
+						overwrite_wsn_file=overwrite_wsn_file,
+						task_id=task_id,
+						override_config=override_config)
 	except Exception as e:
 		utils.handle_scrape_error(state, e, task_id)
 
@@ -937,5 +944,5 @@ def get_arguments():
 
 
 
-if __name__ == '__main__':       
+if __name__ == '__main__':
 	get_arguments()
