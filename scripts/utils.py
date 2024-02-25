@@ -30,7 +30,11 @@ import http
 # import certifi
 
 
-def get_selenium_driver(state_url=None, log=None):
+def get_selenium_driver(
+	 state_url=None
+	,state_proxy=None
+	,log=None
+):
 	options = Options()
 	options.add_argument('--disable-notifications')
 	options.add_argument('--disable-infobars')
@@ -47,9 +51,17 @@ def get_selenium_driver(state_url=None, log=None):
 	options.add_argument('--headless')
 	# uncomment the line below to keep the browser window open; use only for debugging
 	# options.add_experimental_option('detach', True)
-	
-	service = Service(executable_path=ChromeDriverManager().install())
-	driver = webdriver.Chrome(service=service, options=options)   
+
+	if state_proxy is not None:
+		options.add_argument('--proxy-server=%s' % state_proxy);
+
+	service = Service(
+		executable_path=ChromeDriverManager().install()
+	);
+	driver = webdriver.Chrome(
+		 service=service
+		,options=options
+	);   
 	driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})") 
 	driver.set_window_size(1080, 800)
 
@@ -802,7 +814,7 @@ def is_ended(filename):
 	return False
 
 
-def endtime_files(state):
+def endtime_files(state,dzslug):
 	endtime_suffix = get_timestamp_suffix()
 	report_dir = constants.DATA_DIR.replace('XX', state)
 	for full_path in glob.glob(report_dir + '**/*.tmp', recursive=True):

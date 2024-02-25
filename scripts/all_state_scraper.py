@@ -19,7 +19,7 @@ import argparse
 import copy
 import psutil;
 
-g_memchk = False;
+g_memchk = True;
 
 class WebScraper():
 	wsn_list = None
@@ -53,10 +53,11 @@ class WebScraper():
 				 ignore_logs=False,
 				 overwrite_wsn_file=True,
 				 task_id=None,
-				 log_level='INFO',
-				 override_config=None):
+				 log_level='INFO'
+		):
 		self.state = state 
 		self.state_url = api_handler.get_url(state)
+		self.state_proxy = api_handler.get_proxy(state)
 		self.begin_date = utils.get_begin_date(begin_date)
 		self.end_date = utils.get_end_date(end_date)
 		self.wsnumber = wsnumber
@@ -84,7 +85,11 @@ class WebScraper():
 
 
 	def get_driver(self):
-		driver = utils.get_selenium_driver(state_url=self.state_url, log=self.run_logger)
+		driver = utils.get_selenium_driver(
+			 state_url=self.state_url
+			,state_proxy=self.state_proxy
+			,log=self.run_logger
+		)
 		self.run_logger.debug('Selenium driver started')
 		return driver
 
@@ -427,6 +432,8 @@ class WebScraper():
 
 	def write_table_data(self, join_column=None, parent_table_title=None, payload=None, parent_html=None, in_drilldown=False):
 		self.run_logger.info('Report URL is %s', self.current_report_url)
+		if self.state_proxy is not None:
+			self.run_logger.info('   proxy: %s', self.state_proxy);
 
 		try:
 			if payload:
@@ -862,6 +869,9 @@ def get_arguments():
 	overwrite_wsn_file = args.overwrite_wsn_file
 	override_config = args.override_config
 
+	if override_config:
+		api_handler.merge_override(override_config);
+
 	ok = True
 
 	if not utils.check_valid_state(state):
@@ -932,8 +942,7 @@ def get_arguments():
 						drilldowns=drilldowns,
 						ignore_logs=ignorelogs,
 						overwrite_wsn_file=overwrite_wsn_file,
-						task_id=task_id,
-						override_config=override_config)
+						task_id=task_id)
 	except Exception as e:
 		utils.handle_scrape_error(state, e, task_id)
 

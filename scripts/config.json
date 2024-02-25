@@ -3,114 +3,142 @@
        "AK": {
           "url": "https://dec.alaska.gov/dww/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"AL": {
           "url": "http://dww.adem.alabama.gov/DWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"AZ": {
           "url": "https://azsdwis.azdeq.gov/DWW_EXT/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"CA": {
           "url": "https://sdwis.waterboards.ca.gov/PDWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"DE": {
           "url": "https://drinkingwater.dhss.delaware.gov/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"GA": {
           "url": "https://gadrinkingwater.net/DWWPUB/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"IA": {
           "url": "http://programs.iowadnr.gov/drinkingwaterwatch/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"ID": {
           "url": "http://dww.deq.idaho.gov/IDPDWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"IL": {
           "url": "https://water.epa.state.il.us/dww/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"KS": {
           "url": "https://dww.kdhe.ks.gov/DWW/JSP/SearchDispatch"
          ,"enabled": false
+         ,"proxy": null
        }
       ,"KY": {
           "url": "https://dep.gateway.ky.gov/DWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"MD": {
           "url": "https://mdesdwis.mde.state.md.us/DWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"MO": {
           "url": "https://www.dnr.mo.gov/DWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"MS": {
           "url": "https://apps.msdh.ms.gov/DWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"MT": {
           "url": "https://sdwisdww.mt.gov/DWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"NC": {
           "url": "https://www.pwss.enr.state.nc.us/NCDWW2/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"NE": {
           "url": "https://drinkingwater.ne.gov/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"NM": {
           "url": "https://dww.water.net.env.nm.gov/NMDWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"NV": {
           "url": "https://ndwis.ndep.nv.gov/DWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"OH":{
           "url": "https://dww.epa.ohio.gov/DWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"OK": {
           "url": "http://sdwis.deq.state.ok.us/DWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"RI": {
           "url": "https://dwq.health.ri.gov/DWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"SC": {
           "url": "http://dwwwebvm.dhec.sc.gov:8080/DWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"TX": {
           "url": "https://dww2.tceq.texas.gov/DWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"VT": {
           "url": "https://anrnode.anr.state.vt.us/DWW/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"WV": {
           "url": "https://dww.wvdhhr.org/DWWpublic/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"WY": {
           "url": "https://sdwisdww.epa.gov/DWWR8WY/"
          ,"enabled": true
+         ,"proxy": null
        }
       ,"R8": {
           "url": "https://sdwisdww.epa.gov/DWWR8WY/"
          ,"enabled": true
+         ,"proxy": null
        }
    }
 }

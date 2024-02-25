@@ -1,4 +1,5 @@
 import os,json;
+import collections;
 
 # Import the configuration to a global
 f = open(
@@ -38,8 +39,26 @@ def state_urls():
    return state_urls;
 
 def get_url(key):
-   return [d[key] for d in state_urls() if key in d][0]
+   if g_config["state_urls"][key]["enabled"]:
+      return g_config["state_urls"][key]["url"];
+
+def get_proxy(key):
+   if g_config["state_urls"][key]["enabled"]:
+      return g_config["state_urls"][key]["proxy"];
  
+def update_dict(d,u):
+   for k,v in u.items():
+      if isinstance(v,collections.abc.Mapping):
+         d[k] = update_dict(d.get(k,{}),v);
+      else:
+         d[k] = v;
+   return d;
+    
 def merge_override(merge_dict):
-   g_config = g_config ** merge_dict;
+   global g_config;
    
+   if merge_dict is not None: 
+      jmerge_dict = json.loads(merge_dict);
+      
+      g_config = update_dict(g_config,jmerge_dict);
+
