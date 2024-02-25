@@ -897,7 +897,7 @@ def get_arguments():
 		print('Please enter dates using format MM/DD/YYYY')
 		ok = False
 
-	if ignorelogs.upper() in ['N','NO','FALSE']:
+	if ignorelogs and ignorelogs.upper() in ['N','NO','FALSE']:
 		ignorelogs = None;
 
 	if ignorelogs and ignorelogs.upper() not in ['Y','YES','TRUE']:
