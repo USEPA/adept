@@ -51,6 +51,8 @@ def get_selenium_driver(
 	options.add_argument('--headless')
 	# uncomment the line below to keep the browser window open; use only for debugging
 	# options.add_experimental_option('detach', True)
+	options.add_argument('--ignore-certificate-errors')
+	options.add_argument('--ignore-ssl-errors=yes')
 
 	if state_proxy is not None:
 		options.add_argument('--proxy-server=%s' % state_proxy);
