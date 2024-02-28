@@ -583,7 +583,7 @@ class WebScraper():
 						subtrs = BeautifulSoup('<tr>' + empty_cells + '</tr>', features='lxml').find_all('tr')
 
 					num_subtable_rows = len(subtrs)	
-					self.run_logger.debug('There are %s rows in the nested subtable', len(num_subtable_rows))
+					self.run_logger.debug('There are %s rows in the nested subtable', num_subtable_rows)
 					for n in range(0, num_subtable_rows):
 						subreport_row = base_report_row[0: nested_table_columns[0]+1] # TODO: this will only work if there is a single subtable per row
 						for td in subtrs[n].find_all('td'):

@@ -816,7 +816,7 @@ def is_ended(filename):
 	return False
 
 
-def endtime_files(state,dzslug):
+def endtime_files(state):
 	endtime_suffix = get_timestamp_suffix()
 	report_dir = constants.DATA_DIR.replace('XX', state)
 	for full_path in glob.glob(report_dir + '**/*.tmp', recursive=True):
