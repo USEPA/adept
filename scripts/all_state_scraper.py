@@ -176,7 +176,7 @@ class WebScraper():
 					req =  request.Request(url, data=data) 
 					resp = request.urlopen(req)
 					self.driver.find_element(By.NAME, 'action').click()
-					#self.run_logger.test('url = %s', self.driver.current_url)
+					self.run_logger.debug('url = %s', self.driver.current_url)
 					url_text = self.driver.page_source
 					anchors = BeautifulSoup(url_text, features='lxml').findAll('a', href=lambda href: href and 'viewData(' in href)
 					for a in anchors:
