@@ -18,6 +18,8 @@ import requests
 import argparse
 import copy
 import psutil;
+import time
+
 
 g_memchk = True;
 
@@ -830,6 +832,7 @@ class WebScraper():
 		self.delete_dirs()
 
 		if self.task_id:
+			time.sleep(2)
 			self.run_logger.info('Scrape complete for Task ID: %s', self.task_id)
 
 		try:
