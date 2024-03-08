@@ -512,7 +512,7 @@ class WebScraper():
 
 			if g_memchk:
 				pmem = psutil.Process().memory_info();
-				self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20));
+				self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20))
 
 			try:
 				if self.table_type == 'rows':
@@ -591,6 +591,8 @@ class WebScraper():
 						for td in subtrs[n].find_all('td'):
 							subreport_row.append(utils.clean_string(td.text))
 						subreport_row.append(base_report_row[len(base_report_row)-1])
+						print(subreport_row)
+						
 						working_report_table.loc[len(working_report_table.index)] = subreport_row
 					report_table = working_report_table
 

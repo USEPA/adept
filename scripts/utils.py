@@ -832,7 +832,7 @@ def handle_scrape_error(state, error, task_id=None):
 	print('Scraper encountered an error; please see the run log')
 	if task_id:
 		print('Task ID:' + str(task_id))
-	endtime_files(state, get_datestamp_suffix())
+	endtime_files(state)
 	run_logger = LoggerFactory.build_logger(constants.RUN_LOG.replace('XX', state))
 	run_logger.exception('Error attempting to scrape %s: %s', state, error)
 	run_logger.info('Task ID: %s', task_id)
@@ -945,9 +945,13 @@ def get_column_headers(soup, header_index, nested_table_columns=[]):
 	i = 0
 	for td in rows[header_index].find_all(['td','th'], recursive=False):
 		if i in nested_table_columns:
-			nested_list = td.text.split('/')  # !!!this delimiter is specific to the Coliform sample report for Texas-like states
-			for c in nested_list:
-				column_headers.append(c)
+			if td.find('table'): # NC has a nested subtable in some of the SampleScheds reports with a header row that contains a subtable itself
+				for th in td.find('table').find_all('th'):
+					column_headers.append(th.text)	
+			else:
+				nested_list = td.text.split('/')  # !!!this delimiter is specific to the Coliform sample report for Texas-like states
+				for c in nested_list:
+					column_headers.append(c)
 		else:
 			column_headers.append(td.text)    
 		i += 1

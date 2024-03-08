@@ -3,18 +3,18 @@ import constants, utils
 from os import path, makedirs
 
 
-state = None
-wsnumber = 'KY0270003'
-num_wsns_to_scrape = None
-begin_date = '01/01/1980'
-end_date = '01/09/2024'
+state = 'TX' # None
+wsnumber = None #'NC0241696'
+num_wsns_to_scrape = 5 # None
+begin_date = None #'01/01/1980'
+end_date = None # '01/09/2024'
 # report_to_scrape = None
-report_to_scrape = 'NonTcrSamples'
+report_to_scrape = 'TcrSampleResults'
 drilldowns = True
 ignore_logs = True
 overwrite_wsn_file = False
 log_level = 'DEBUG'
-if wsnumber and not state:
+if wsnumber:
 	state = wsnumber[:2]
 if wsnumber and type(num_wsns_to_scrape) is list:
 	num_wsns_to_scrape = len(num_wsns_to_scrape)
