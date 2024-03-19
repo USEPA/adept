@@ -3,13 +3,13 @@ import constants, utils
 from os import path, makedirs
 
 
-state = 'TX' # None
-wsnumber = None #'NC0241696'
-num_wsns_to_scrape = 5 # None
-begin_date = None #'01/01/1980'
+state = None
+wsnumber = 'NC0241696'
+num_wsns_to_scrape = 1 # None
+begin_date = '11/23/2005'
 end_date = None # '01/09/2024'
 # report_to_scrape = None
-report_to_scrape = 'TcrSampleResults'
+report_to_scrape = ' TcrSampleResults'
 drilldowns = True
 ignore_logs = True
 overwrite_wsn_file = False
@@ -30,8 +30,11 @@ report_url_to_test = None
 
 def do_test(scraper):
 	if not report_url_to_test:
-		print(scraper.nav_list)
-		scraper.scrape()
+		# print('hi')
+		# print('nav_list = ' + str(scraper.nav_list))
+		# scraper.scrape()
+		scraper.setup()
+		print('done')
 	else:
 		report_group_name = utils.get_report_group_from_url(report_url_to_test)
 		scraper.report_group_dir = constants.DATA_DIR.replace('XX', scraper.state) + report_group_name

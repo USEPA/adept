@@ -6,13 +6,13 @@ state = None
 num_wsns_to_scrape = 1
 wsnumber = 'NC0241696'
 # wsnumber = None
-startdate = None
-enddate = None
+startdate = '11/23/2005'
+enddate = None 
 report = None
 drilldowns = True
-ignorelogs = False
+ignorelogs = True
 overwrite_wsn_file = False
-log_level = 'DEBUG'
+log_level = 'INFO'
 
  
 try:        
