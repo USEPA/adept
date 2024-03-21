@@ -910,7 +910,7 @@ def get_arguments():
 	parser.add_argument('--drilldowns', nargs='?', help='Optional. Typically used for development/debugging only. Pass N or False to avoid drilling down if links are available in a report.')
 	parser.add_argument('--ignorelogs', nargs='?', help='Optional. Typically used for development/debugging only. Pass Y or True to scrape all data even for WSNs that have already been logged as scraped.')
 	parser.add_argument('--overwrite_wsn_file', nargs='?', help="Optional. Typically used for development/debugging only. Pass Y or True to download a new WSN list, overwriting an existing one if it exists")
-	parser.add_argument('--log_level', nargs='?', help="Optional. Valid options are NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL. Defaults to INFO.")
+	parser.add_argument('--loglevel', nargs='?', help="Optional. Valid options are NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL. Defaults to INFO.")
 
 	parser.add_argument('--override_config', nargs='?', help="Optional JSON for overriding static configurations")
 
@@ -930,7 +930,7 @@ def get_arguments():
 	ignorelogs = args.ignorelogs
 	overwrite_wsn_file = args.overwrite_wsn_file
 	override_config = args.override_config
-	loglevel = args.log_level
+	loglevel = args.loglevel
 
 	if override_config:
 		api_handler.merge_override(override_config);
