@@ -11,7 +11,7 @@ enddate = None
 report = None
 drilldowns = True
 ignorelogs = True
-overwrite_wsn_file = False
+overwrite_wsn_file = True
 log_level = 'INFO'
 
  

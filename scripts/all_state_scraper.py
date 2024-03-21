@@ -910,6 +910,7 @@ def get_arguments():
 	parser.add_argument('--drilldowns', nargs='?', help='Optional. Typically used for development/debugging only. Pass N or False to avoid drilling down if links are available in a report.')
 	parser.add_argument('--ignorelogs', nargs='?', help='Optional. Typically used for development/debugging only. Pass Y or True to scrape all data even for WSNs that have already been logged as scraped.')
 	parser.add_argument('--overwrite_wsn_file', nargs='?', help="Optional. Typically used for development/debugging only. Pass Y or True to download a new WSN list, overwriting an existing one if it exists")
+	parser.add_argument('--log_level', nargs='?', help="Optional. Valid options are NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL. Defaults to INFO.")
 
 	parser.add_argument('--override_config', nargs='?', help="Optional JSON for overriding static configurations")
 
@@ -929,6 +930,7 @@ def get_arguments():
 	ignorelogs = args.ignorelogs
 	overwrite_wsn_file = args.overwrite_wsn_file
 	override_config = args.override_config
+	loglevel = args.log_level.upper()
 
 	if override_config:
 		api_handler.merge_override(override_config);
@@ -970,8 +972,15 @@ def get_arguments():
 		print('Unknown value for overwrite_wsn_file: ' + overwrite_wsn_file)
 		print('Accepted values are: Y, Yes, or True')
 		ok = False
+	
+	if loglevel and loglevel not in ('NOTSET','DEBUG','INFO','WARNING','ERROR','CRITICAL')
+		print('Unknown value for log_level:' + loglevel)
+		print('Accepted values are: NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL')
+		ok = False
+
 	if not ok:
 		exit()
+
 
 	print('Beginning scrape for ' + state)
 	if wsnumber:
@@ -993,6 +1002,9 @@ def get_arguments():
 	if overwrite_wsn_file:
 		print('Overwriting WSN list if it already exists')
 
+	if loglevel:
+		print('Log level set to ' + loglevel)
+
 	task_id = cloudutils.fetch_task_id()
 	print('Task ID: ', task_id)
 
@@ -1006,6 +1018,7 @@ def get_arguments():
 						drilldowns=drilldowns,
 						ignore_logs=ignorelogs,
 						overwrite_wsn_file=overwrite_wsn_file,
+						log_level=loglevel,
 						task_id=task_id)
 	except Exception as e:
 		utils.handle_scrape_error(state, e, task_id)
