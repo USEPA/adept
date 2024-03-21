@@ -930,7 +930,7 @@ def get_arguments():
 	ignorelogs = args.ignorelogs
 	overwrite_wsn_file = args.overwrite_wsn_file
 	override_config = args.override_config
-	loglevel = args.log_level.upper()
+	loglevel = args.log_level
 
 	if override_config:
 		api_handler.merge_override(override_config);
@@ -973,7 +973,7 @@ def get_arguments():
 		print('Accepted values are: Y, Yes, or True')
 		ok = False
 	
-	if loglevel and loglevel not in ('NOTSET','DEBUG','INFO','WARNING','ERROR','CRITICAL'):
+	if loglevel and loglevel.upper() not in ('NOTSET','DEBUG','INFO','WARNING','ERROR','CRITICAL'):
 		print('Unknown value for log_level:' + loglevel)
 		print('Accepted values are: NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL')
 		ok = False
@@ -1003,7 +1003,7 @@ def get_arguments():
 		print('Overwriting WSN list if it already exists')
 
 	if loglevel:
-		print('Log level set to ' + loglevel)
+		print('Log level set to ' + loglevel.upper())
 
 	task_id = cloudutils.fetch_task_id()
 	print('Task ID: ', task_id)
@@ -1018,7 +1018,7 @@ def get_arguments():
 						drilldowns=drilldowns,
 						ignore_logs=ignorelogs,
 						overwrite_wsn_file=overwrite_wsn_file,
-						log_level=loglevel,
+						log_level=loglevel.upper(),
 						task_id=task_id)
 	except Exception as e:
 		utils.handle_scrape_error(state, e, task_id)
