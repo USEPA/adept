@@ -3,7 +3,7 @@ import constants, utils
 from os import path, makedirs
 
 
-state = None
+state = 'NC'
 wsnumber = 'NC0241696'
 num_wsns_to_scrape = 1 # None
 begin_date = '11/23/2005'

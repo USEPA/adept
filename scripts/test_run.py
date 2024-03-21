@@ -3,7 +3,7 @@ import utils
 
  
 state = 'NC'
-num_wsns_to_scrape = 10
+num_wsns_to_scrape = 2
 # wsnumber = 'NC0241696'
 wsnumber = None
 startdate = None

@@ -726,10 +726,12 @@ class WebScraper():
 
 		# log the report
 		if scraped:
-			self.wsn_report_logger.info('%s, %s, %s, %s', self.wsnumber, report_group_name, self.begin_date, self.end_date)
 			self.run_logger.debug('Scraped %s for %s', report_group_name, self.wsnumber)
 			if report_group_name in self.dated_reports:
+				self.wsn_report_logger.info('%s, %s, %s, %s', self.wsnumber, report_group_name, self.report_begin_date, self.report_end_date)
 				self.run_logger.debug('Dated report %s: %s to %s', report_group_name, self.report_begin_date, self.report_end_date)
+			else:
+				self.wsn_report_logger.info('%s, %s, %s, %s', self.wsnumber, report_group_name, self.begin_date, self.end_date)
 			found_data = True
 		else:
 			self.run_logger.debug('No data scraped!')
