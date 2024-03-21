@@ -2,17 +2,17 @@ from all_state_scraper import WebScraper
 import utils
 
  
-state = None
-num_wsns_to_scrape = 1
-wsnumber = 'NC0241696'
-# wsnumber = None
+state = 'NC'
+num_wsns_to_scrape = 2
+# wsnumber = 'NC0241696'
+wsnumber = None
 startdate = None
-enddate = None
+enddate = None 
 report = None
 drilldowns = True
-ignorelogs = False
+ignorelogs = True
 overwrite_wsn_file = False
-log_level = 'DEBUG'
+log_level = 'INFO'
 
  
 try:        

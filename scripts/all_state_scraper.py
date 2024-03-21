@@ -17,8 +17,9 @@ from datetime import timedelta, datetime
 import requests 
 import argparse
 import copy
-import psutil;
+import psutil
 import time
+from dateutil.relativedelta import relativedelta
 
 
 g_memchk = True;
@@ -28,6 +29,8 @@ class WebScraper():
 	nav_list = None
 	token_state = None
 	dated_reports = None
+	report_begin_date = None
+	report_end_date = None
 	report_group_dir = None
 	report_file_name = None 
 	report_file_path = None
@@ -260,7 +263,7 @@ class WebScraper():
 			self.nav_list = [constants.WSN_DETAILS_URL.replace('STATE_URL', self.state_url)]
 		else:
 			self.nav_list = [constants.WSN_DETAILS_URL.replace('STATE_URL', self.state_url) + '&DWWState=DWWSTATE']
-			
+
 		for anchor in anchors:
 			if 'WaterSystemDetail' not in anchor['href']: # we added this above b/c not all states have it in the nav list, so don't add it again if they do
 				if self.token_state:
@@ -290,22 +293,28 @@ class WebScraper():
 							report_url = report_url.replace('BEGIN_DATE', '').replace('END_DATE', '')
 				self.nav_list.append(report_url)
 
-			for url in self.nav_list:
-				if 'ReportFormat=WQIR' in url or 'ReportFormat=SR' in url:
-					self.nav_list.remove(url)
-				for page in api_handler.noscrape_nav_reports:
-					if page in url:
-						try:
-							self.nav_list.remove(url)
-						except:
-							pass
-
-			if self.report_to_scrape:
-				for url in self.nav_list:
-					if self.report_to_scrape not in url:
+		for url in self.nav_list:
+			if 'ReportFormat=WQIR' in url or 'ReportFormat=SR' in url:
+				self.nav_list.remove(url)
+			for page in api_handler.noscrape_nav_reports:
+				if page in url:
+					try:
 						self.nav_list.remove(url)
+					except:
+						pass
 
-		self.run_logger.debug('nav_list = %s', self.nav_list)
+		if self.report_to_scrape:
+			new_nav_list = []
+			for url in self.nav_list:
+				if self.report_to_scrape in url:
+					new_nav_list.append(url)
+			self.nav_list = new_nav_list
+
+		self.run_logger.debug('Navigation List:')
+		for url in self.nav_list:
+			self.run_logger.debug(url)
+		self.run_logger.debug(' ')
+
 
 
 	def get_dated_reports(self):
@@ -334,8 +343,14 @@ class WebScraper():
 		current_report_url = current_report_url.replace('TINWSYS_IS_NUMBER', tinwsys_is_number)
 		current_report_url = current_report_url.replace('WSNUMBER', self.wsnumber)
 		current_report_url = current_report_url.replace('DWWSTATE', dwwstate)
-		current_report_url = current_report_url.replace('BEGIN_DATE', self.begin_date)
-		current_report_url = current_report_url.replace('END_DATE', self.end_date)
+		if self.report_begin_date:
+			current_report_url = current_report_url.replace('BEGIN_DATE', self.report_begin_date)
+		else:
+			current_report_url = current_report_url.replace('BEGIN_DATE', self.begin_date)
+		if self.report_end_date:
+			current_report_url = current_report_url.replace('END_DATE', self.report_end_date)
+		else:
+			current_report_url = current_report_url.replace('END_DATE', self.end_date)
 		return current_report_url
 
 
@@ -344,13 +359,20 @@ class WebScraper():
 		tinwsys_is_number = str(self.wsn[1])
 		tinwsys_st_code = self.wsn[2]
 		dwwstate = str(self.wsn[3])
+		begin_date = self.begin_date 
+		if self.report_begin_date:
+			begin_date = self.report_begin_date
+		end_date = self.end_date 
+		if self.report_end_date:
+			end_date = self.report_end_date
+
 		payload = {'OWASP-CSRFTOKEN': self.token,
 			'tinwsys_is_number': tinwsys_is_number,
 			'tinwsys_st_code': tinwsys_st_code,
 			'wsnumber': wsnumber,
 			'DWWState': dwwstate,
-			'begin_date': self.begin_date,
-			'end_date': self.end_date,
+			'begin_date': begin_date,
+			'end_date': end_date,
 			'counter': '0',
 			'history': '0'}
 		return payload
@@ -591,7 +613,7 @@ class WebScraper():
 						for td in subtrs[n].find_all('td'):
 							subreport_row.append(utils.clean_string(td.text))
 						subreport_row.append(base_report_row[len(base_report_row)-1])
-						print(subreport_row)
+						# print(subreport_row)
 						
 						working_report_table.loc[len(working_report_table.index)] = subreport_row
 					report_table = working_report_table
@@ -681,6 +703,42 @@ class WebScraper():
 		return True
 
 
+	def get_report_data(self, report_url, report_group_name):
+		# print('Report Begin Date = ' + self.report_begin_date)
+		# print('Report End Date = ' + self.report_end_date)
+		payload = None
+		if self.token_state:
+			payload = self.build_payload()
+			if 'WaterSystemDetail' in report_url:
+				self.current_report_url = report_url
+			else:
+				self.current_report_url = self.state_url + 'JSP/' + report_url
+		else:
+			# build the report URL
+			self.current_report_url = self.build_current_report_url(report_url)
+		self.run_logger.debug('Current report URL is %s', self.current_report_url)
+		# scrape the tables
+		scraped = self.write_table_data(payload=payload)
+
+		if g_memchk:
+			pmem = psutil.Process().memory_info()
+			self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20))
+
+		# log the report
+		if scraped:
+			self.run_logger.debug('Scraped %s for %s', report_group_name, self.wsnumber)
+			if report_group_name in self.dated_reports:
+				self.wsn_report_logger.info('%s, %s, %s, %s', self.wsnumber, report_group_name, self.report_begin_date, self.report_end_date)
+				self.run_logger.debug('Dated report %s: %s to %s', report_group_name, self.report_begin_date, self.report_end_date)
+			else:
+				self.wsn_report_logger.info('%s, %s, %s, %s', self.wsnumber, report_group_name, self.begin_date, self.end_date)
+			found_data = True
+		else:
+			self.run_logger.debug('No data scraped!')
+		if not found_data:
+			self.run_logger.info('No new data found for %s',  self.wsnumber)
+
+
 	def scrape_wsn(self):
 		self.run_logger.info('Working on %s', self.wsnumber)
 
@@ -721,36 +779,29 @@ class WebScraper():
 					continue
 
 			self.report_group_dir = constants.DATA_DIR.replace('XX', self.state) + report_group_name
-			payload = None
-			if self.token_state:
-				payload = self.build_payload()
-				if 'WaterSystemDetail' in report_url:
-					self.current_report_url = report_url
-				else:
-					self.current_report_url = self.state_url + 'JSP/' + report_url
-			else:
-				# build the report URL
-				self.current_report_url = self.build_current_report_url(report_url)
-			self.run_logger.debug('Current report URL is %s', self.current_report_url)
-			# scrape the tables
 			self.run_logger.info('Working on %s report group', report_group_name)
-			scraped = self.write_table_data(payload=payload)
+			if report_group_name in self.dated_reports:
+				begin_date = datetime.strptime(self.begin_date, '%m/%d/%Y').date()
+				begin_year = begin_date.year
+				end_date = datetime.strptime(self.end_date, '%m/%d/%Y').date()
+				end_year = end_date.year
+				diff = end_date - begin_date
 
-			if g_memchk:
-				pmem = psutil.Process().memory_info();
-				self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20));
-
-			# log the report
-			if scraped:
-				self.wsn_report_logger.info('%s, %s, %s, %s', self.wsnumber, report_group_name, self.begin_date, self.end_date)
-				self.run_logger.debug('Scraped %s for %s', report_group_name, self.wsnumber)
-				if report_group_name in self.dated_reports:
-					self.run_logger.debug('Dated report %s: %s to %s', report_group_name, self.begin_date, self.end_date)
-				found_data = True
+				if diff.days >= 365:
+					for i in range(begin_year, end_year+1):
+						if i == begin_year:
+							self.report_begin_date = str(begin_date.month) + '/' + str(begin_date.day) + '/' + str(begin_date.year)
+						else:
+							self.report_begin_date = '01/01/' + str(begin_date.year)
+						if i == end_year:
+							self.report_end_date = str(end_date.month) + '/' + str(end_date.day) + '/' + str(end_date.year)
+						else:
+							self.report_end_date = '12/31/' + str(i)	
+						begin_date += relativedelta(years=1)
+						self.get_report_data(report_url, report_group_name)
 			else:
-				self.run_logger.debug('No data scraped!')
-		if not found_data:
-			self.run_logger.info('No new data found for %s',  self.wsnumber)
+				self.get_report_data(report_url, report_group_name)
+
 
 
 	def make_dirs(self):
