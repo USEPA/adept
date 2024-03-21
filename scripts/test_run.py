@@ -2,8 +2,8 @@ from all_state_scraper import WebScraper
 import utils
 
  
-state = 'NC'
-num_wsns_to_scrape = 2
+state = 'RI'
+num_wsns_to_scrape = 1
 # wsnumber = 'NC0241696'
 wsnumber = None
 startdate = None
