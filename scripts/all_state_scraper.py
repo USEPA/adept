@@ -1003,7 +1003,8 @@ def get_arguments():
 		print('Overwriting WSN list if it already exists')
 
 	if loglevel:
-		print('Log level set to ' + loglevel.upper())
+		loglevel = loglevel.upper()
+		print('Log level set to ' + loglevel)
 
 	task_id = cloudutils.fetch_task_id()
 	print('Task ID: ', task_id)
