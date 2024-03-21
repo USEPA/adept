@@ -231,7 +231,12 @@ class WebScraper():
 
 	def get_nav_list(self):
 		# get a sample wsn
-		self.wsn = self.wsn_list[0]
+		try:
+			self.wsn = self.wsn_list[0]
+		except IndexError as e:
+			self.run_logger.error('No WSNs have been downloaded; unable to proceed with scrape.')
+			utils.handle_scrape_error(self.state, e, self.task_id)
+			exit()
 
 		# get WSN Details html, find the nav menu, and build the report list from it
 		if self.token_state:
