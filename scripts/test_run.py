@@ -2,11 +2,11 @@ from all_state_scraper import WebScraper
 import utils
 
  
-state = None
-num_wsns_to_scrape = 1
-wsnumber = 'NC0241696'
-# wsnumber = None
-startdate = '11/23/2005'
+state = 'NC'
+num_wsns_to_scrape = 10
+# wsnumber = 'NC0241696'
+wsnumber = None
+startdate = None
 enddate = None 
 report = None
 drilldowns = True

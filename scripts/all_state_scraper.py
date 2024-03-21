@@ -232,7 +232,6 @@ class WebScraper():
 	def get_nav_list(self):
 		# get a sample wsn
 		self.wsn = self.wsn_list[0]
-		print('wsn = ' + self.wsn[0])
 
 		# get WSN Details html, find the nav menu, and build the report list from it
 		if self.token_state:
@@ -305,18 +304,11 @@ class WebScraper():
 						pass
 
 		if self.report_to_scrape:
-			print('self.report_to_scrape = ' + self.report_to_scrape)
-			print(type(self.report_to_scrape))
+			new_nav_list = []
 			for url in self.nav_list:
-				print(url)
-				print( self.report_to_scrape in url)
-				if self.report_to_scrape not in url:
-					self.nav_list.remove(url)
-					print('removed ' + url)
-				else:
-					print('keeping ' + url)
-			print('-----------------------------------------------------------')
-
+				if self.report_to_scrape in url:
+					new_nav_list.append(url)
+			self.nav_list = new_nav_list
 
 		self.run_logger.debug('Navigation List:')
 		for url in self.nav_list:
@@ -351,8 +343,14 @@ class WebScraper():
 		current_report_url = current_report_url.replace('TINWSYS_IS_NUMBER', tinwsys_is_number)
 		current_report_url = current_report_url.replace('WSNUMBER', self.wsnumber)
 		current_report_url = current_report_url.replace('DWWSTATE', dwwstate)
-		current_report_url = current_report_url.replace('BEGIN_DATE', self.begin_date)
-		current_report_url = current_report_url.replace('END_DATE', self.end_date)
+		if self.report_begin_date:
+			current_report_url = current_report_url.replace('BEGIN_DATE', self.report_begin_date)
+		else:
+			current_report_url = current_report_url.replace('BEGIN_DATE', self.begin_date)
+		if self.report_end_date:
+			current_report_url = current_report_url.replace('END_DATE', self.report_end_date)
+		else:
+			current_report_url = current_report_url.replace('END_DATE', self.end_date)
 		return current_report_url
 
 
@@ -361,13 +359,20 @@ class WebScraper():
 		tinwsys_is_number = str(self.wsn[1])
 		tinwsys_st_code = self.wsn[2]
 		dwwstate = str(self.wsn[3])
+		begin_date = self.begin_date 
+		if self.report_begin_date:
+			begin_date = self.report_begin_date
+		end_date = self.end_date 
+		if self.report_end_date:
+			end_date = self.report_end_date
+
 		payload = {'OWASP-CSRFTOKEN': self.token,
 			'tinwsys_is_number': tinwsys_is_number,
 			'tinwsys_st_code': tinwsys_st_code,
 			'wsnumber': wsnumber,
 			'DWWState': dwwstate,
-			'begin_date': self.begin_date,
-			'end_date': self.end_date,
+			'begin_date': begin_date,
+			'end_date': end_date,
 			'counter': '0',
 			'history': '0'}
 		return payload
@@ -608,7 +613,7 @@ class WebScraper():
 						for td in subtrs[n].find_all('td'):
 							subreport_row.append(utils.clean_string(td.text))
 						subreport_row.append(base_report_row[len(base_report_row)-1])
-						print(subreport_row)
+						# print(subreport_row)
 						
 						working_report_table.loc[len(working_report_table.index)] = subreport_row
 					report_table = working_report_table
@@ -699,8 +704,8 @@ class WebScraper():
 
 
 	def get_report_data(self, report_url, report_group_name):
-		print('Report Begin Date = ' + self.report_begin_date)
-		print('Report End Date = ' + self.report_end_date)
+		# print('Report Begin Date = ' + self.report_begin_date)
+		# print('Report End Date = ' + self.report_end_date)
 		payload = None
 		if self.token_state:
 			payload = self.build_payload()
