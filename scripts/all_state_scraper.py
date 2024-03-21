@@ -1019,7 +1019,7 @@ def get_arguments():
 						drilldowns=drilldowns,
 						ignore_logs=ignorelogs,
 						overwrite_wsn_file=overwrite_wsn_file,
-						log_level=loglevel.upper(),
+						log_level=loglevel,
 						task_id=task_id)
 	except Exception as e:
 		utils.handle_scrape_error(state, e, task_id)
