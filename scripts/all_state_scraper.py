@@ -1005,6 +1005,8 @@ def get_arguments():
 	if loglevel:
 		loglevel = loglevel.upper()
 		print('Log level set to ' + loglevel)
+	else:
+		loglevel = 'INFO'
 
 	task_id = cloudutils.fetch_task_id()
 	print('Task ID: ', task_id)
