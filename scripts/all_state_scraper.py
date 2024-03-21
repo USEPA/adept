@@ -973,7 +973,7 @@ def get_arguments():
 		print('Accepted values are: Y, Yes, or True')
 		ok = False
 	
-	if loglevel and loglevel not in ('NOTSET','DEBUG','INFO','WARNING','ERROR','CRITICAL')
+	if loglevel and loglevel not in ('NOTSET','DEBUG','INFO','WARNING','ERROR','CRITICAL'):
 		print('Unknown value for log_level:' + loglevel)
 		print('Accepted values are: NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL')
 		ok = False
