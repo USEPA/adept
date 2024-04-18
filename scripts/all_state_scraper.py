@@ -145,6 +145,7 @@ class WebScraper():
 
          with open(self.wsn_file, 'w', newline='') as csvfile:
             writer = csv.writer(csvfile, delimiter=',', quoting=csv.QUOTE_MINIMAL)
+            
             if first_row:
                headers = ['wsnumber', 'tinwsys_is_number', 'tinwsys_st_code', 'dwwstate']
                writer.writerow(headers)
@@ -742,6 +743,7 @@ class WebScraper():
       found_data = False
 
       for report_url in self.nav_list:
+      
          # get the report group name, which is the subfolder to save to
          report_group_name = utils.get_report_group_from_url(report_url)
          self.run_logger.debug('Working on report_group_name %s', report_group_name)
@@ -776,32 +778,52 @@ class WebScraper():
                continue
 
          self.report_group_dir = constants.DATA_DIR.replace('XX', self.state) + report_group_name
+         
          self.run_logger.info('Working on %s report group', report_group_name)
+         
          if report_group_name in self.dated_reports:
+            
             begin_date = datetime.strptime(self.begin_date, '%m/%d/%Y').date()
             begin_year = begin_date.year
+            self.run_logger.debug('. Begin Date: ' + str(begin_date));
+            
             end_date = datetime.strptime(self.end_date, '%m/%d/%Y').date()
             end_year = end_date.year
+            self.run_logger.debug('. End Date: ' + str(end_date));
+            
             diff = end_date - begin_date
-
+            self.run_logger.debug('.  Total days: ' + str(diff.days));
+            
             if diff.days >= 365:
-               for i in range(begin_year, end_year+1):
+            
+               for i in range(begin_year, end_year + 1):
+               
                   if i == begin_year:
                      self.report_begin_date = str(begin_date.month) + '/' + str(begin_date.day) + '/' + str(begin_date.year)
                   else:
                      self.report_begin_date = '01/01/' + str(begin_date.year)
+                  
                   if i == end_year:
                      self.report_end_date = str(end_date.month) + '/' + str(end_date.day) + '/' + str(end_date.year)
                   else:
                      self.report_end_date = '12/31/' + str(i)
+                  
                   begin_date += relativedelta(years=1)
+                  
                   self.get_report_data(report_url, report_group_name)
+            
+            else:
+               self.run_logger.debug('.  Not enough days.');
+               
          else:
             self.get_report_data(report_url, report_group_name)
 
    def make_dirs(self):
+   
       for report_url in self.nav_list:
+         
          report_group_dir = constants.DATA_DIR.replace('XX', self.state) + utils.get_report_group_from_url(report_url)
+         
          if not path.exists(report_group_dir):
             makedirs(path.normpath(report_group_dir))
             self.run_logger.info('Created directory %s', report_group_dir)
