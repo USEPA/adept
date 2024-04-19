@@ -785,14 +785,10 @@ class WebScraper():
             
             begin_date = datetime.strptime(self.begin_date, '%m/%d/%Y').date()
             begin_year = begin_date.year
-            self.run_logger.debug('. Begin Date: ' + str(begin_date));
-            
             end_date = datetime.strptime(self.end_date, '%m/%d/%Y').date()
             end_year = end_date.year
-            self.run_logger.debug('. End Date: ' + str(end_date));
-            
             diff = end_date - begin_date
-            self.run_logger.debug('.  Total days: ' + str(diff.days));
+            self.run_logger.debug(str(begin_date) + ' - ' + str(end_date) + ' for ' + str(diff.days) + ' days');
             
             if diff.days >= 365:
             
@@ -813,7 +809,7 @@ class WebScraper():
                   self.get_report_data(report_url, report_group_name)
             
             else:
-               self.run_logger.debug('.  Not enough days.');
+               self.run_logger.debug('.  Skipping, not enough days.');
                
          else:
             self.get_report_data(report_url, report_group_name)
