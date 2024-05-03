@@ -21,7 +21,7 @@ import psutil
 import time
 from dateutil.relativedelta import relativedelta
 
-g_memchk = False;
+g_memchk = False
 
 class WebScraper():
    wsn_list = None
@@ -45,6 +45,7 @@ class WebScraper():
    tinwsys_st_code = None
    wsn = None
    payload = None
+
 
    def __init__(
        self
@@ -215,8 +216,9 @@ class WebScraper():
          self.run_logger.debug('There are %s WSNs to scrape', len(self.wsn_list))
 
          if g_memchk:
-            pmem = psutil.Process().memory_info();
-            self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20));
+            pmem = psutil.Process().memory_info()
+            self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20))
+
 
    def load_wyr8(self, url, wyr8='WY'):
       html = self.session.get(self.state_url).text
@@ -228,6 +230,7 @@ class WebScraper():
       response = self.session.get(url)
       html = response.text
       return html
+
 
    def get_nav_list(self):
       # get a sample wsn
@@ -320,6 +323,7 @@ class WebScraper():
          self.run_logger.debug(url)
       self.run_logger.debug(' ')
 
+
    def get_dated_reports(self):
       self.dated_reports = []
       if self.token_state:
@@ -334,6 +338,7 @@ class WebScraper():
          else:
             if 'BEGIN_DATE' in link:
                self.dated_reports.append(utils.get_report_group_from_url(link))
+
 
    def build_current_report_url(self, report_url):
       tinwsys_is_number = str(self.wsn[1])
@@ -354,6 +359,7 @@ class WebScraper():
       else:
          current_report_url = current_report_url.replace('END_DATE', self.end_date)
       return current_report_url
+
 
    def build_payload(self):
       wsnumber = str(self.wsn[0])
@@ -377,6 +383,7 @@ class WebScraper():
          'counter': '0',
          'history': '0'}
       return payload
+
 
    def look_for_drilldowns(self, table_html, table_title, full_html=None):
       indexes = utils.get_header_and_first_data_indexes(table_html)
@@ -451,13 +458,14 @@ class WebScraper():
          self.write_table_data(join_column=join_column, parent_table_title=table_title, payload=payload, parent_html=full_html, in_drilldown=True)
 
          if g_memchk:
-            pmem = psutil.Process().memory_info();
-            self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20));
+            pmem = psutil.Process().memory_info()
+            self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20))
+
 
    def write_table_data(self, join_column=None, parent_table_title=None, payload=None, parent_html=None, in_drilldown=False):
       self.run_logger.info('Report URL is %s', self.current_report_url)
       if self.state_proxy is not None:
-         self.run_logger.info('   proxy: %s', self.state_proxy);
+         self.run_logger.info('   proxy: %s', self.state_proxy)
 
       try:
          if payload:
@@ -533,7 +541,7 @@ class WebScraper():
          self.run_logger.debug('report_file_path = %s', self.report_file_path)
 
          if g_memchk:
-            pmem = psutil.Process().memory_info();
+            pmem = psutil.Process().memory_info()
             self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20))
 
          try:
@@ -702,9 +710,10 @@ class WebScraper():
 
       return True
 
+
    def get_report_data(self, report_url, report_group_name):
-      # print('Report Begin Date = ' + self.report_begin_date)
-      # print('Report End Date = ' + self.report_end_date)
+      # print('Report Begin Date = ' + str(self.report_begin_date))
+      # print('Report End Date = ' + str(self.report_end_date))
       payload = None
       if self.token_state:
          payload = self.build_payload()
@@ -737,6 +746,7 @@ class WebScraper():
       if not found_data:
          self.run_logger.info('No new data found for %s',  self.wsnumber)
 
+
    def scrape_wsn(self):
       self.run_logger.info('Working on %s', self.wsnumber)
 
@@ -749,8 +759,8 @@ class WebScraper():
          self.run_logger.debug('Working on report_group_name %s', report_group_name)
 
          if g_memchk:
-            pmem = psutil.Process().memory_info();
-            self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20));
+            pmem = psutil.Process().memory_info()
+            self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20))
 
          if not self.ignore_logs:
             df = utils.get_completed_report_for_wsn(self.wsnumber, report_group_name, self.completed_wsns)
@@ -778,22 +788,18 @@ class WebScraper():
                continue
 
          self.report_group_dir = constants.DATA_DIR.replace('XX', self.state) + report_group_name
-         
          self.run_logger.info('Working on %s report group', report_group_name)
          
          if report_group_name in self.dated_reports:
-            
             begin_date = datetime.strptime(self.begin_date, '%m/%d/%Y').date()
             begin_year = begin_date.year
             end_date = datetime.strptime(self.end_date, '%m/%d/%Y').date()
             end_year = end_date.year
             diff = end_date - begin_date
-            self.run_logger.debug(str(begin_date) + ' - ' + str(end_date) + ' for ' + str(diff.days) + ' days');
+            self.run_logger.debug(str(begin_date) + ' - ' + str(end_date) + ' for ' + str(diff.days) + ' days')
             
             if diff.days >= 365:
-            
                for i in range(begin_year, end_year + 1):
-               
                   if i == begin_year:
                      self.report_begin_date = str(begin_date.month) + '/' + str(begin_date.day) + '/' + str(begin_date.year)
                   else:
@@ -804,15 +810,19 @@ class WebScraper():
                   else:
                      self.report_end_date = '12/31/' + str(i)
                   
-                  begin_date += relativedelta(years=1)
-                  
                   self.get_report_data(report_url, report_group_name)
-            
+                  
+                  begin_date += relativedelta(years=1)
+
             else:
-               self.run_logger.debug('.  Skipping, not enough days.');
+               self.report_begin_date = self.begin_date
+               self.report_end_date = self.end_date
+               self.get_report_data(report_url, report_group_name)
                
          else:
             self.get_report_data(report_url, report_group_name)
+               
+         
 
    def make_dirs(self):
    
@@ -824,6 +834,7 @@ class WebScraper():
             makedirs(path.normpath(report_group_dir))
             self.run_logger.info('Created directory %s', report_group_dir)
 
+
    def delete_dirs(self):
       self.run_logger.info('Deleting empty directories')
       parent_dir = constants.DATA_DIR.replace('XX', self.state)
@@ -834,6 +845,7 @@ class WebScraper():
             rmdir(folder[0])
             i += 1
       self.run_logger.info('Deleted %s empty directories', i)
+
 
    def test_state_url(self):
       msg = None
@@ -853,6 +865,7 @@ class WebScraper():
                   self.run_logger.error('%s', msg)
                   exit()
       self.run_logger.debug('State URL %s opens OK, proceeding', v)
+
 
    def setup(self):
       self.test_state_url()
@@ -876,6 +889,7 @@ class WebScraper():
 
       self.make_dirs()
 
+
    def scrape(self):
       if self.task_id:
          self.run_logger.info('Starting scrape for Task ID: %s', self.task_id)
@@ -888,11 +902,8 @@ class WebScraper():
 
       self.wsn_report_logger.info('%s, %s, %s, %s', 'All', 'All', self.begin_date, self.end_date)
 
-      self.run_logger.info('Running endtime_files to rename .tmp into .csv.');
-      utils.endtime_files(
-          state      = self.state
-         ,logger     = self.run_logger
-      );
+      self.run_logger.info('Running endtime_files to rename .tmp into .csv.')
+      utils.endtime_files(state=self.state, logger=self.run_logger)
       self.run_logger.info('Files renamed to include scrape end date.')
 
       self.delete_dirs()
@@ -905,6 +916,7 @@ class WebScraper():
          self.driver.close()
       except AttributeError:
          pass
+
 
 def get_arguments():
    parser = argparse.ArgumentParser()
@@ -940,7 +952,7 @@ def get_arguments():
    loglevel = args.loglevel
 
    if override_config:
-      api_handler.merge_override(override_config);
+      api_handler.merge_override(override_config)
 
    ok = True
 
@@ -1031,8 +1043,7 @@ def get_arguments():
          ,overwrite_wsn_file=overwrite_wsn_file
          ,log_level=loglevel
          ,task_id=task_id
-      );
-      
+      )
    except Exception as e:
       utils.handle_scrape_error(state, e, task_id)
 
