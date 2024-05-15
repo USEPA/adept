@@ -1,4 +1,5 @@
 import api_handler, constants, config
+from factories.logger_factory import LoggerFactory
 
 import sys
 import logging
@@ -55,15 +56,10 @@ def get_selenium_driver(
    options.add_argument('--ignore-ssl-errors=yes')
 
    if state_proxy is not None:
-      options.add_argument('--proxy-server=%s' % state_proxy);
+      options.add_argument('--proxy-server=%s' % state_proxy)
 
-   service = Service(
-      executable_path=ChromeDriverManager().install()
-   );
-   driver = webdriver.Chrome(
-       service=service
-      ,options=options
-   );
+   service = Service(executable_path=ChromeDriverManager().install())
+   driver = webdriver.Chrome(service=service, options=options)
    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
    driver.set_window_size(1080, 800)
 
@@ -821,20 +817,20 @@ def endtime_files(
    ,logger = None
 ):
    if logger is None:
-      logger = LoggerFactory.build_logger(constants.RUN_LOG.replace('XX', state));
+      logger = LoggerFactory.build_logger(constants.RUN_LOG.replace('XX', state))
 
    endtime_suffix = get_timestamp_suffix();
-   logger.debug('endtime_suffix = ' + str(endtime_suffix));
+   logger.debug('endtime_suffix = ' + str(endtime_suffix))
 
    report_dir = constants.DATA_DIR.replace('XX', state)
-   logger.debug('report_dir = ' + str(report_dir));
+   logger.debug('report_dir = ' + str(report_dir))
 
-   adept_glob = glob.glob(report_dir + '**/*.tmp', recursive=True);
+   adept_glob = glob.glob(report_dir + '**/*.tmp', recursive=True)
    if adept_glob is None or len(adept_glob) == 0:
-      logger.debug('found no tmp files to rename.');
+      logger.debug('found no tmp files to rename.')
 
    else:
-      logger.debug('found ' + str(len(adept_glob)) + ' temp files to rename.');
+      logger.debug('found ' + str(len(adept_glob)) + ' temp files to rename.')
 
       for full_path in adept_glob:
          file_name = ntpath.basename(full_path)
@@ -843,7 +839,7 @@ def endtime_files(
             directory = ntpath.split(full_path)[0] + '/'
             new_file_name = file_name.replace('.tmp','') + endtime_suffix + '.csv'
 
-            logger.debug('renaming ' + str(full_path) + ' to ' + str(new_file_name));
+            logger.debug('renaming ' + str(full_path) + ' to ' + str(new_file_name))
             os.rename(full_path, directory + new_file_name)
 
 

@@ -2,7 +2,7 @@ import logging
 import sys
 from os import path
 from pathlib import Path
-import time;
+import time
 
 class LoggerFactory:
    @staticmethod
@@ -67,6 +67,6 @@ class LoggerFactory:
       
    def debug(self,msg,*args,**kwargs):
       # Add minor delay to force logging to order better under debug
-      time.sleep(0.01);
-      return super(LoggerFactory,self).debug(msg,*args,**kwargs);
+      time.sleep(0.01)
+      return super(LoggerFactory,self).debug(msg,*args,**kwargs)
 
