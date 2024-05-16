@@ -733,6 +733,7 @@ class WebScraper():
          self.run_logger.info('   memory: %s', pmem[0] / float(2 ** 20))
 
       # log the report
+      found_data = False
       if scraped:
          self.run_logger.debug('Scraped %s for %s', report_group_name, self.wsnumber)
          if report_group_name in self.dated_reports:
