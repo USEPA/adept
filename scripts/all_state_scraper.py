@@ -980,17 +980,19 @@ def get_arguments():
       print('Please enter dates using format MM/DD/YYYY')
       ok = False
 
-   if ignorelogs and ignorelogs.upper() in ['N','NO','FALSE']:
-      ignorelogs = None;
-
-   if ignorelogs and ignorelogs.upper() not in ['Y','YES','TRUE']:
+   if ignorelogs and ignorelogs.upper() not in ['Y','YES','TRUE','N','NO','FALSE','NULL']:
       print('Unknown value for ignorelogs: ' + ignorelogs)
-      print('Accepted values are: Y, Yes, or True')
+      print('Accepted values are: Y, Yes, True, N, No, False, or Null')
       ok = False
 
-   if overwrite_wsn_file and overwrite_wsn_file.upper() not in ['Y','YES','TRUE']:
+   if overwrite_wsn_file and overwrite_wsn_file.upper() not in ['Y','YES','TRUE','N','NO','FALSE','NULL']:
       print('Unknown value for overwrite_wsn_file: ' + overwrite_wsn_file)
-      print('Accepted values are: Y, Yes, or True')
+      print('Accepted values are: Y, Yes, True, N, No, False, or Null')
+      ok = False
+
+   if drilldowns and drilldowns.upper() not in ['Y','YES','TRUE','N','NO','FALSE','NULL']:
+      print('Unknown value for drilldowns: ' + drilldowns)
+      print('Accepted values are: Y, Yes, True, N, No, False, or Null')
       ok = False
 
    if loglevel and loglevel.upper() not in ('NOTSET','DEBUG','INFO','WARNING','ERROR','CRITICAL'):
@@ -1013,14 +1015,23 @@ def get_arguments():
    if report:
       print('Output restricted to reports containing ' + report + ' in the URL')
 
-   if drilldowns:
+   if drilldowns.upper() in ['N','NO','FALSE']:
       print('Ignoring drilldown reports')
+      drilldowns = False
+   else:
+      drilldowns = True
 
-   if ignorelogs:
+   if ignorelogs.upper() in ['Y','YES','TRUE']:
       print('Ignoring the logs and scraping all data even if previously logged as scraped')
+      ignorelogs = True
+   else:
+      ignorelogs = False
 
-   if overwrite_wsn_file:
+   if overwrite_wsn_file.upper() in ['Y','YES','TRUE','NULL']:
       print('Overwriting WSN list if it already exists')
+      overwrite_wsn_file = True
+   else:
+      overwrite_wsn_file = False
 
    if loglevel:
       loglevel = loglevel.upper()
