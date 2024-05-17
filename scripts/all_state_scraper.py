@@ -980,21 +980,29 @@ def get_arguments():
       print('Please enter dates using format MM/DD/YYYY')
       ok = False
 
+   if not ignorelogs:
+      ignorelogs = 'NULL'
    if ignorelogs and ignorelogs.upper() not in ['Y','YES','TRUE','N','NO','FALSE','NULL']:
       print('Unknown value for ignorelogs: ' + ignorelogs)
       print('Accepted values are: Y, Yes, True, N, No, False, or Null')
       ok = False
 
+   if not overwrite_wsn_file:
+      overwrite_wsn_file = 'NULL'
    if overwrite_wsn_file and overwrite_wsn_file.upper() not in ['Y','YES','TRUE','N','NO','FALSE','NULL']:
       print('Unknown value for overwrite_wsn_file: ' + overwrite_wsn_file)
       print('Accepted values are: Y, Yes, True, N, No, False, or Null')
       ok = False
 
+   if not drilldowns:
+      drilldowns = 'NULL'
    if drilldowns and drilldowns.upper() not in ['Y','YES','TRUE','N','NO','FALSE','NULL']:
       print('Unknown value for drilldowns: ' + drilldowns)
       print('Accepted values are: Y, Yes, True, N, No, False, or Null')
       ok = False
 
+   if not loglevel:
+      loglevel = 'INFO'
    if loglevel and loglevel.upper() not in ('NOTSET','DEBUG','INFO','WARNING','ERROR','CRITICAL'):
       print('Unknown value for log_level:' + loglevel)
       print('Accepted values are: NOTSET, DEBUG, INFO, WARNING, ERROR, CRITICAL')
