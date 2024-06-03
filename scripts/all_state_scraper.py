@@ -22,6 +22,7 @@ import time
 from dateutil.relativedelta import relativedelta
 
 g_memchk = False
+g_timeout = 60
 
 class WebScraper():
    wsn_list = None
@@ -181,7 +182,10 @@ class WebScraper():
                data = {'OWASP-CSRFTOKEN': self.token}
                data = parse.urlencode(data).encode()
                req =  request.Request(url, data=data)
-               resp = request.urlopen(req)
+               resp = request.urlopen(
+                   req
+                  ,timeout = g_timeout    
+               )
                self.driver.find_element(By.NAME, 'action').click()
                self.run_logger.debug('url = %s', self.driver.current_url)
                url_text = self.driver.page_source

@@ -30,6 +30,7 @@ import ssl
 import http
 # import certifi
 
+g_timeout = 60
 
 def get_selenium_driver(
     state_url=None
@@ -292,11 +293,18 @@ def get_html(url, session=None, retry_count=0):
       try:
          # context = ssl.create_default_context(cafile=certifi.where())
          context = ssl._create_unverified_context()
-         response = urlopen(url, context=context)
+         response = urlopen(
+             url
+            ,context = context
+            ,timeout = g_timeout
+         )
       except error.HTTPError:
          try:
             req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
-            response = urlopen(req)
+            response = urlopen(
+                req
+               ,timeout = g_timeout
+            )
          except error.HTTPError:
             raise e
       except (error.URLError, TimeoutError, ConnectionResetError) as e:
@@ -902,7 +910,11 @@ def test_url(url):
    try:
       req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
       context = ssl._create_unverified_context()
-      r = urlopen(req, context=context)
+      r = urlopen(
+          req
+         ,context = context
+         ,timeout = g_timeout
+      )
    except Exception as e:
       return e
    if 'gecsws' in r.geturl():
@@ -916,7 +928,11 @@ def test_url(url):
 def get_new_url(url):
    req = Request(url=url, headers={'User-Agent': 'Mozilla/5.0'})
    context = ssl._create_unverified_context()
-   r = urlopen(req, context=context)
+   r = urlopen(
+       req
+      ,context = context
+      ,timeout = g_timeout   
+   )
    return r.geturl()
 
 
