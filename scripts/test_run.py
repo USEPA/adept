@@ -2,12 +2,12 @@ from all_state_scraper import WebScraper
 import utils
 
  
-state = 'RI'
+state = 'MO'
 num_wsns_to_scrape = 1
-wsnumber = 'RI1000009'
-# wsnumber = None
+# wsnumber = 'DE0000552'
+wsnumber = None
 startdate = '1/1/2023'
-enddate = '9/30/2023' 
+enddate = None
 report = None
 drilldowns = True
 ignorelogs = False
