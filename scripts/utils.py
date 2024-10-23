@@ -1,16 +1,18 @@
-import api_handler, constants, config
-from factories.logger_factory import LoggerFactory
-
-import sys
-import logging
-import os.path
-from pathlib import Path
-from os import makedirs
-import pathlib
+from bs4 import BeautifulSoup
+# import certifi
 from datetime import datetime
 import glob
-import ntpath
+import http
+import itertools
 from io import StringIO
+import logging
+import ntpath
+from os import makedirs
+import os.path
+import pandas as pd
+import pathlib
+from pathlib import Path
+import re
 from selenium import webdriver
 from selenium.common import exceptions
 from selenium.webdriver.chrome.options import Options
@@ -18,17 +20,15 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
-from webdriver_manager.chrome import ChromeDriverManager
-import pandas as pd
-import itertools
-import re
+import ssl
+import sys
 import time
 from urllib import error
 from urllib.request import urlopen, Request
-from bs4 import BeautifulSoup
-import ssl
-import http
-# import certifi
+from webdriver_manager.chrome import ChromeDriverManager
+
+import api_handler, constants, config
+from factories.logger_factory import LoggerFactory
 
 
 def get_selenium_driver(
@@ -58,7 +58,11 @@ def get_selenium_driver(
    if state_proxy is not None:
       options.add_argument('--proxy-server=%s' % state_proxy)
 
-   service = Service(executable_path=ChromeDriverManager().install())
+   # service = Service(executable_path=ChromeDriverManager().install())
+   chrome_install = ChromeDriverManager().install()
+   folder = os.path.dirname(chrome_install)
+   chromedriver_path = os.path.join(folder, "chromedriver.exe")
+   service = Service(chromedriver_path)
    driver = webdriver.Chrome(service=service, options=options)
    driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
    driver.set_window_size(1080, 800)

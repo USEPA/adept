@@ -1,4 +1,5 @@
-import os, requests;
+import os
+import requests
 
 def fetch_task_id(
    default_value = "NULL"

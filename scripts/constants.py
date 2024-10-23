@@ -1,5 +1,6 @@
-from config import BASE_DIR, REPORT_BEGIN_DATE, REPORT_END_DATE
 import datetime
+
+from config import BASE_DIR, REPORT_BEGIN_DATE, REPORT_END_DATE
 
 REPORT_BGCOLORS = ['306192','d3c1ab']
 

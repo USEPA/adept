@@ -1,5 +1,6 @@
-import os,json;
-import collections;
+import collections
+import json
+import os
 
 # Import the configuration to a global
 f = open(

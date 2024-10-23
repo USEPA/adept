@@ -1,15 +1,16 @@
-from all_state_scraper import WebScraper
-import constants, utils
 from os import path, makedirs
 
+from all_state_scraper import WebScraper
+import constants, utils
 
-state = 'NC'
-wsnumber = 'NC0241696'
+
+state = 'MO'
+wsnumber = None #'AZ0413029'
 num_wsns_to_scrape = 1 # None
 begin_date = '11/23/2005'
 end_date = None # '01/09/2024'
 # report_to_scrape = None
-report_to_scrape = 'TcrSampleResults'
+report_to_scrape = None
 drilldowns = False
 ignore_logs = True
 overwrite_wsn_file = False

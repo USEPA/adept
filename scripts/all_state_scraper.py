@@ -1,25 +1,26 @@
-from factories.logger_factory import LoggerFactory
+import argparse
+from bs4 import BeautifulSoup
+import copy
+import csv
+from datetime import timedelta, datetime
+from dateutil.relativedelta import relativedelta
+import numpy as np
+from os import path, makedirs, walk, rmdir
+import pandas as pd
+from pathlib import Path
+import psutil
+import re
+import requests
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support.ui import WebDriverWait
+import time
+from urllib import error, parse, request
+
 import api_handler
 import constants, utils, cloudutils
+from factories.logger_factory import LoggerFactory
 
-import pandas as pd
-import numpy as np
-from bs4 import BeautifulSoup
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions
-from os import path, makedirs, walk, rmdir
-from pathlib import Path
-import csv
-from urllib import error, parse, request
-import re
-from datetime import timedelta, datetime
-import requests
-import argparse
-import copy
-import psutil
-import time
-from dateutil.relativedelta import relativedelta
 
 g_memchk = False
 
