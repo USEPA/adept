@@ -105,11 +105,6 @@
          ,"enabled": true
          ,"proxy": null
        }
-      ,"RI": {
-          "url": "https://dwq.health.ri.gov/DWW/"
-         ,"enabled": true
-         ,"proxy": null
-       }
       ,"SC": {
           "url": "http://dwwwebvm.dhec.sc.gov:8080/DWW/"
          ,"enabled": true
