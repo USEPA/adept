@@ -2,7 +2,7 @@ from all_state_scraper import WebScraper
 import utils
 
  
-state = 'NC'                        # Required. If wnumber is set and is not associated with the state variable, the state variable will be overwritten with the state the wsnumber is part of.
+state = 'KS'                        # Required. If wnumber is set and is not associated with the state variable, the state variable will be overwritten with the state the wsnumber is part of.
 num_wsns_to_scrape = 1              # Optional; will scrape entire state if None and wsnumber is None. 
 wsnumber = None                     # Optional; can be a string (single WSN) or Python list of WSNs. 
 begin_date = None                   # Optional; sampling report date range to begin with. mm/dd/yyyy format. If None, will default to 01/01/1980.

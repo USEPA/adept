@@ -13,9 +13,9 @@ f = open(
 ); 
 g_config = json.load(f);
 
-csrf_token_states = ['KS','MO','RI']
+csrf_token_states = ['KS','MO']
 
-texas_like_states = ['TX','NM','NC','KS','MO','RI']
+texas_like_states = ['TX','NM','NC','KS','MO']
 
 nondrilldown_reports = ['Buyers of Water', 'Chemical Sample Schedules']
 
